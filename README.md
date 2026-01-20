@@ -1,20 +1,58 @@
 # LyuWpfHelper
 
-WPF辅助工具
+一个功能丰富的 WPF 辅助工具库，提供常用控件、转换器、行为和 MVVM 基础设施。
 
+[![NuGet](https://img.shields.io/nuget/v/LyuWpfHelper.svg)](https://www.nuget.org/packages/LyuWpfHelper/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## ✨ 特性
 
-## 快速开始
+- 🎯 **开箱即用** - 通过统一的 XML 命名空间访问所有功能
+- 🎨 **丰富的控件** - 可选择文本块、带间距的堆叠面板等
+- 🔄 **实用转换器** - 布尔值、可见性、数学运算等常用转换器
+- 🏗️ **MVVM 支持** - 集成消息传递的 ViewModel 基类
+- 📦 **轻量级** - 仅依赖 CommunityToolkit.Mvvm
+- 🎯 **多框架支持** - 支持 .NET 8.0、9.0、10.0
+
+## 📦 安装
+
+### NuGet 包管理器
+```powershell
+Install-Package LyuWpfHelper
+```
+
+### .NET CLI
+```bash
+dotnet add package LyuWpfHelper
+```
+
+### PackageReference
+```xml
+<PackageReference Include="LyuWpfHelper" Version="*" />
+```
+
+## 🚀 快速开始
 
 在 XAML 中引入命名空间：
 
 ```xml
 <Window xmlns:lyu="http://schemas.lyuwpfhelper.com/winfx/xaml">
-    <!-- 使用所有控件和转换器 -->
+    <!-- 使用所有控件、转换器和行为 -->
 </Window>
 ```
 
-## 功能列表
+## 📑 目录
+
+- [功能列表](#-功能列表)
+  - [控件 (Controls)](#-控件-controls)
+  - [面板 (Panels)](#-面板-panels)
+  - [辅助类 (Helpers)](#️-辅助类-helpers)
+  - [行为 (Behaviors)](#-行为-behaviors)
+  - [ViewModel 基类](#️-viewmodel-基类-viewmodels)
+  - [转换器 (Converters)](#-转换器-converters)
+- [许可证](#-许可证)
+
+## 📚 功能列表
 
 ### 📦 控件 (Controls)
 
@@ -25,20 +63,10 @@ WPF辅助工具
 <lyu:SelectableTextBlock Text="用户可以选中并复制这段文本" />
 ```
 
-#### CopyableTextBox
-带一键复制按钮的文本框，支持复制成功提示。
-
-```xml
-<lyu:CopyableTextBox Text="点击按钮快速复制" 
-                     CopyButtonText="复制"
-                     CopiedText="已复制" />
-```
-
-**属性：**
-- `Text` - 文本内容
-- `IsReadOnly` - 是否只读（默认：true）
-- `CopyButtonText` - 复制按钮文本（默认："复制"）
-- `CopiedText` - 复制成功提示文本（默认："已复制"）
+**特性：**
+- 支持文本选择和复制
+- 保持 TextBlock 的轻量级特性
+- 完美替代只读 TextBox
 
 ### 🎨 面板 (Panels)
 
@@ -56,6 +84,72 @@ WPF辅助工具
 **属性：**
 - `Orientation` - 方向（Vertical/Horizontal）
 - `Spacing` - 子元素间距
+
+### 🛠️ 辅助类 (Helpers)
+
+#### GridHelper
+Grid 辅助类，提供简化的行列定义语法，让 Grid 布局更简洁易读。
+
+**基本用法：**
+```xml
+<!-- 传统方式 -->
+<Grid>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="2*"/>
+        <RowDefinition Height="100"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+</Grid>
+
+<!-- 使用 GridHelper 简化 -->
+<Grid lyu:GridHelper.RowDefinitions="Auto,*,2*,100"
+      lyu:GridHelper.ColumnDefinitions="Auto,*">
+    <!-- 内容 -->
+</Grid>
+```
+
+**支持的格式：**
+- `Auto` - 自动大小（GridLength.Auto）
+- `*` - 比例大小 1*（GridLength(1, Star)）
+- `2*` - 比例大小 2*（GridLength(2, Star)）
+- `100` - 固定像素值（GridLength(100, Pixel)）
+
+**实际示例：**
+```xml
+<!-- 经典的头部-内容-底部布局 -->
+<Grid lyu:GridHelper.RowDefinitions="Auto,*,Auto">
+    <TextBlock Grid.Row="0" Text="头部"/>
+    <ScrollViewer Grid.Row="1">
+        <!-- 主要内容 -->
+    </ScrollViewer>
+    <StackPanel Grid.Row="2">
+        <!-- 底部按钮 -->
+    </StackPanel>
+</Grid>
+
+<!-- 侧边栏布局 -->
+<Grid lyu:GridHelper.ColumnDefinitions="200,*">
+    <ListBox Grid.Column="0"/>
+    <ContentControl Grid.Column="1"/>
+</Grid>
+
+<!-- 复杂布局 -->
+<Grid lyu:GridHelper.RowDefinitions="50,*,2*,Auto"
+      lyu:GridHelper.ColumnDefinitions="Auto,*,200">
+    <!-- 网格内容 -->
+</Grid>
+```
+
+**优势：**
+- 代码更简洁，减少 XAML 冗余
+- 一行定义多个行/列
+- 易于阅读和维护
+- 支持所有标准 GridLength 类型
 
 ### 🎯 行为 (Behaviors)
 
@@ -289,10 +383,127 @@ public class ChatViewModel : ViewModelBase
 </TextBlock.Visibility>
 ```
 
+## 💡 实用示例
 
+### 示例 1：带行号的数据表格
+```xml
+<DataGrid ItemsSource="{Binding Users}"
+          SelectionMode="Extended"
+          lyu:DataGridRowNumberBehavior.IsEnabled="True"
+          lyu:DataGridRowNumberBehavior.HeaderText="No."
+          lyu:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedUsers}">
+    <DataGrid.Columns>
+        <DataGridTextColumn Header="姓名" Binding="{Binding Name}"/>
+        <DataGridTextColumn Header="邮箱" Binding="{Binding Email}"/>
+    </DataGrid.Columns>
+</DataGrid>
+```
 
-## 许可证
+### 示例 2：响应式布局
+```xml
+<Grid lyu:GridHelper.RowDefinitions="Auto,*,Auto"
+      lyu:GridHelper.ColumnDefinitions="200,*,300">
+    
+    <!-- 顶部工具栏 -->
+    <Border Grid.Row="0" Grid.ColumnSpan="3" Background="#F0F0F0">
+        <lyu:SimpleStackPanel Orientation="Horizontal" Spacing="10" Margin="10">
+            <Button Content="新建"/>
+            <Button Content="保存"/>
+            <Button Content="删除"/>
+        </lyu:SimpleStackPanel>
+    </Border>
+    
+    <!-- 左侧导航 -->
+    <ListBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding MenuItems}"/>
+    
+    <!-- 主内容区 -->
+    <ContentControl Grid.Row="1" Grid.Column="1" Content="{Binding CurrentView}"/>
+    
+    <!-- 右侧属性面板 -->
+    <Border Grid.Row="1" Grid.Column="2" BorderBrush="Gray" BorderThickness="1,0,0,0">
+        <ScrollViewer>
+            <lyu:SimpleStackPanel Spacing="15" Margin="10">
+                <TextBlock Text="属性" FontWeight="Bold"/>
+                <!-- 属性编辑器 -->
+            </lyu:SimpleStackPanel>
+        </ScrollViewer>
+    </Border>
+    
+    <!-- 底部状态栏 -->
+    <StatusBar Grid.Row="2" Grid.ColumnSpan="3">
+        <lyu:SelectableTextBlock Text="{Binding StatusMessage}"/>
+    </StatusBar>
+</Grid>
+```
 
-MIT License
+### 示例 3：条件显示与转换器组合
+```xml
+<lyu:SimpleStackPanel Spacing="10">
+    <!-- 加载指示器 -->
+    <ProgressBar IsIndeterminate="True"
+                 Visibility="{Binding IsLoading, Converter={lyu:BooleanToVisibilityConverter}}"/>
+    
+    <!-- 错误消息 -->
+    <TextBlock Text="{Binding ErrorMessage}"
+               Foreground="Red"
+               Visibility="{Binding ErrorMessage, Converter={lyu:StringEmptyToVisibilityConverter}}"/>
+    
+    <!-- 数据内容 -->
+    <ItemsControl ItemsSource="{Binding Items}"
+                  Visibility="{Binding IsLoading, Converter={lyu:BooleanToVisibilityConverter IsInverted=True}}"/>
+    
+    <!-- 空数据提示 -->
+    <TextBlock Text="暂无数据"
+               Visibility="{Binding Items, Converter={lyu:NullToVisibilityConverter IsInverted=True}}"/>
+</lyu:SimpleStackPanel>
+```
 
+### 示例 4：MVVM 消息传递
+```csharp
+// LoginViewModel.cs
+public class LoginViewModel : ViewModelBase
+{
+    [RelayCommand]
+    private void Login()
+    {
+        // 登录成功后发送消息
+        Send(new UserLoggedInMessage(CurrentUser));
+    }
+}
 
+// MainViewModel.cs
+public class MainViewModel : ViewModelBase
+{
+    public MainViewModel()
+    {
+        // 注册消息接收
+        Register<UserLoggedInMessage>(OnUserLoggedIn);
+    }
+    
+    private void OnUserLoggedIn(object recipient, UserLoggedInMessage message)
+    {
+        CurrentUser = message.User;
+        StatusMessage = $"欢迎，{message.User.Name}！";
+    }
+}
+
+// 消息定义
+public record UserLoggedInMessage(User User);
+```
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 📄 许可证
+
+本项目采用 [MIT](LICENSE) 许可证。
+
+## 🔗 相关链接
+
+- [NuGet 包](https://www.nuget.org/packages/LyuWpfHelper/)
+- [问题反馈](https://github.com/yourusername/LyuWpfHelper/issues)
+
+---
+
+**Made with ❤️ for WPF developers**

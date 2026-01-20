@@ -1,5 +1,4 @@
 <Solution>
   <Project Path="LyuWpfHelper/LyuWpfHelper.csproj" />
-  <Project Path="WpfApp1/WpfApp1.csproj" Id="eca98d98-33be-4159-be7c-68cf87c8aaa4" />
   <Project Path="WpfTest/WpfTest.csproj" />
 </Solution>
