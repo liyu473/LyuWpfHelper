@@ -4,6 +4,7 @@ using System.Windows.Markup;
 [assembly: XmlnsDefinition("http://schemas.lyuwpfhelper.com/winfx/xaml", "LyuWpfHelper.Panels")]
 [assembly: XmlnsDefinition("http://schemas.lyuwpfhelper.com/winfx/xaml", "LyuWpfHelper.Behaviors")]
 [assembly: XmlnsDefinition("http://schemas.lyuwpfhelper.com/winfx/xaml", "LyuWpfHelper.Controls")]
+[assembly: XmlnsDefinition("http://schemas.lyuwpfhelper.com/winfx/xaml", "LyuWpfHelper.Converters")]
 
 // 添加一个更短的别名
 [assembly: XmlnsPrefix("http://schemas.lyuwpfhelper.com/winfx/xaml", "lyu")]
