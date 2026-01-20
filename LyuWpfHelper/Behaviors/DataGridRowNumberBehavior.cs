@@ -12,7 +12,7 @@ namespace LyuWpfHelper.Behaviors;
 /// </summary>
 public static class DataGridRowNumberBehavior
 {
-    private static readonly Dictionary<DataGrid, DataGridTextColumn> _columnCache = [];
+    private static readonly Dictionary<DataGrid, DataGridTemplateColumn> _columnCache = [];
 
     /// <summary>
     /// 是否启用行序号
@@ -104,6 +104,7 @@ public static class DataGridRowNumberBehavior
             AddRowNumberColumn(dataGrid);
             
             dataGrid.LoadingRow += OnLoadingRow;
+            dataGrid.Sorting += OnSorting;
             
             // 监听数据源变化
             var descriptor = System.ComponentModel.DependencyPropertyDescriptor.FromProperty(
@@ -116,6 +117,7 @@ public static class DataGridRowNumberBehavior
         {
             RemoveRowNumberColumn(dataGrid);
             dataGrid.LoadingRow -= OnLoadingRow;
+            dataGrid.Sorting -= OnSorting;
         }
     }
 
@@ -148,7 +150,9 @@ public static class DataGridRowNumberBehavior
         if (_columnCache.ContainsKey(dataGrid))
             return;
 
-        var column = new DataGridTextColumn
+        // 使用 DataGridTemplateColumn 而不是 DataGridTextColumn
+        // 这样可以完全控制内容显示，避免 Binding 警告和闪烁问题
+        var column = new DataGridTemplateColumn
         {
             Header = GetHeaderText(dataGrid),
             Width = GetColumnWidth(dataGrid),
@@ -157,20 +161,15 @@ public static class DataGridRowNumberBehavior
             CanUserResize = true
         };
 
-        // 设置单元格文本居中对齐
-        var cellStyle = new Style(typeof(TextBlock));
-        cellStyle.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
-        cellStyle.Setters.Add(new Setter(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center));
-        cellStyle.Setters.Add(new Setter(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center));
-        column.ElementStyle = cellStyle;
-
-        // 设置编辑模式下的样式
-        var editStyle = new Style(typeof(TextBox));
-        editStyle.Setters.Add(new Setter(TextBox.TextAlignmentProperty, TextAlignment.Center));
-        column.EditingElementStyle = editStyle;
-
-        // 设置绑定（虽然实际不使用，但需要有绑定才能显示）
-        column.Binding = new Binding();
+        // 创建单元格模板
+        var cellTemplate = new DataTemplate();
+        var factory = new FrameworkElementFactory(typeof(TextBlock));
+        factory.SetValue(TextBlock.TextAlignmentProperty, TextAlignment.Center);
+        factory.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+        factory.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+        factory.SetValue(TextBlock.TextProperty, string.Empty); // 默认为空，通过 LoadingRow 更新
+        cellTemplate.VisualTree = factory;
+        column.CellTemplate = cellTemplate;
 
         dataGrid.Columns.Insert(0, column);
         _columnCache[dataGrid] = column;
@@ -193,6 +192,18 @@ public static class DataGridRowNumberBehavior
         }
         
         RefreshRowNumbers(dataGrid);
+    }
+
+    private static void OnSorting(object? sender, DataGridSortingEventArgs e)
+    {
+        if (sender is DataGrid dataGrid)
+        {
+            // 排序完成后刷新行号
+            dataGrid.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                RefreshRowNumbers(dataGrid);
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
     }
 
     private static void OnLoadingRow(object? sender, DataGridRowEventArgs e)

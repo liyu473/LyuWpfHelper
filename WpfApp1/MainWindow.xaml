@@ -13,7 +13,6 @@
     mc:Ignorable="d">
     <Grid>
         <DataGrid
-            lyu:DataGridRowNumberBehavior.ColumnWidth="100"
             lyu:DataGridRowNumberBehavior.HeaderText="序号"
             lyu:DataGridRowNumberBehavior.IsEnabled="True"
             CanUserAddRows="False"
