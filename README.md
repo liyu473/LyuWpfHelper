@@ -1,22 +1,8 @@
 # LyuWpfHelper
 
-一个功能丰富的 WPF 辅助库，提供常用的控件、行为、面板和值转换器，帮助你更高效地开发 WPF 应用程序。
+WPF辅助工具
 
-## 特性
 
-- ✅ **统一命名空间** - 只需引入一次命名空间即可访问所有功能
-- ✅ **多目标框架** - 支持 .NET 8.0、9.0、10.0
-- ✅ **开箱即用** - 无需额外配置，直接使用
-- ✅ **MVVM 友好** - 完美支持 MVVM 模式
-
-## 安装
-
-```bash
-# 通过 NuGet 安装（待发布）
-Install-Package LyuWpfHelper
-```
-
-或者直接引用项目 DLL。
 
 ## 快速开始
 
@@ -90,6 +76,71 @@ public class MyViewModel
     public ObservableCollection<Item> SelectedItems { get; set; }
 }
 ```
+
+### 🏗️ ViewModel 基类 (ViewModels)
+
+#### ViewModelBase
+集成了 Messenger 信使功能的 ViewModel 基类，继承自 CommunityToolkit.Mvvm 的 ObservableObject。
+
+**基本用法：**
+```csharp
+using LyuWpfHelper.ViewModels;
+
+public class MainViewModel : ViewModelBase
+{
+    public MainViewModel()
+    {
+        // 注册消息接收器
+        Register<UserLoginMessage>(OnUserLogin);
+    }
+
+    private void OnUserLogin(object recipient, UserLoginMessage message)
+    {
+        // 处理用户登录消息
+        Console.WriteLine($"用户 {message.UserName} 已登录");
+    }
+
+    public void Login(string userName)
+    {
+        // 发送消息
+        Send(new UserLoginMessage(userName));
+    }
+}
+
+// 消息定义
+public record UserLoginMessage(string UserName);
+```
+
+**高级用法 - 频道消息：**
+```csharp
+public class ChatViewModel : ViewModelBase
+{
+    public ChatViewModel()
+    {
+        // 注册指定频道的消息
+        Register<ChatMessage, string>("Channel1", OnChatMessage);
+    }
+
+    private void OnChatMessage(object recipient, ChatMessage message)
+    {
+        // 处理聊天消息
+    }
+
+    public void SendMessage(string content)
+    {
+        // 发送到指定频道
+        Send(new ChatMessage(content), "Channel1");
+    }
+}
+```
+
+**可用方法：**
+- `Send<TMessage>(message)` - 发送消息
+- `Send<TMessage, TToken>(message, token)` - 发送消息到指定频道
+- `Register<TMessage>(handler)` - 注册消息接收器
+- `Register<TMessage, TToken>(token, handler)` - 注册指定频道的消息接收器
+- `Unregister<TMessage>()` - 取消注册指定类型的消息
+- `UnregisterAll()` - 取消注册所有消息
 
 ### 🔄 转换器 (Converters)
 
@@ -204,41 +255,10 @@ public class MyViewModel
 </TextBlock.Visibility>
 ```
 
-## 项目结构
 
-```
-LyuWpfHelper/
-├── Behaviors/              # 行为类
-│   └── DataGridSelectedItemsBehavior.cs
-├── Controls/               # 自定义控件
-│   ├── CopyableTextBox.cs
-│   └── SelectableTextBlock.cs
-├── Converters/             # 值转换器
-│   ├── BooleanToVisibilityConverter.cs
-│   ├── InverseBooleanConverter.cs
-│   ├── NullToVisibilityConverter.cs
-│   ├── StringEmptyToVisibilityConverter.cs
-│   ├── MathConverter.cs
-│   ├── ColorToBrushConverter.cs
-│   ├── CollectionElementIndexConverter.cs
-│   └── ValueConverterGroup.cs
-├── Panels/                 # 面板控件
-│   └── SimpleStackPanel.cs
-├── Themes/                 # 默认样式
-│   └── Generic.xaml
-└── XmlnsDefinition.cs      # 命名空间映射
-```
 
 ## 许可证
 
 MIT License
 
-## 贡献
 
-欢迎提交 Issue 和 Pull Request！
-
-## 更新日志
-
-### v1.0.0
-- 初始版本发布
-- 添加基础控件、面板、行为和转换器
