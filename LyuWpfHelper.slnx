@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="LyuWpfHelper/LyuWpfHelper.csproj" />
+  <Project Path="WpfTest/WpfTest.csproj" />
+</Solution>

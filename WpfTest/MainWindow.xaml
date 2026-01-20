@@ -1,0 +1,61 @@
+﻿<Window
+    x:Class="WpfTest.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:WpfTest"
+    xmlns:lyu="http://schemas.lyuwpfhelper.com/winfx/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="MainWindow"
+    Width="800"
+    Height="450"
+    d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
+    mc:Ignorable="d">
+    <Grid>
+        <TabControl>
+            <TabItem Header="SimpleStackPanel">
+                <lyu:SimpleStackPanel Orientation="Horizontal" Spacing="12">
+                    <Button
+                        Width="100"
+                        Height="30"
+                        Content="1" />
+                    <Button
+                        Width="100"
+                        Height="30"
+                        Content="2" />
+                    <Button
+                        Width="100"
+                        Height="30"
+                        Content="3" />
+                </lyu:SimpleStackPanel>
+            </TabItem>
+
+            <TabItem Header="datagrid  多选绑定">
+                <Grid>
+                    <DataGrid
+                        lyu:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedData}"
+                        CanUserAddRows="False"
+                        ItemsSource="{Binding Datas}"
+                        SelectionMode="Extended"
+                        SelectionUnit="FullRow">
+                    </DataGrid>
+
+                    <TextBlock VerticalAlignment="Bottom" Text="{Binding TestText}" />
+                </Grid>
+
+            </TabItem>
+
+            <TabItem Header="可选择文本框">
+                <lyu:SimpleStackPanel
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Vertical"
+                    Spacing="24">
+                    <lyu:SelectableTextBlock Text="1274626491749384" />
+                    <TextBox />
+                </lyu:SimpleStackPanel>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>
