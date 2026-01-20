@@ -57,6 +57,29 @@
                     <TextBox />
                 </lyu:SimpleStackPanel>
             </TabItem>
+
+            <TabItem Header="Grid辅助">
+                <Grid lyu:GridHelper.ColumnDefinitions="*,*" lyu:GridHelper.RowDefinitions="Auto,*">
+                    <Border
+                        Grid.Row="0"
+                        Grid.ColumnSpan="2"
+                        Height="80"
+                        Background="Yellow"
+                        Opacity="0.4" />
+
+                    <Border
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Background="Red"
+                        Opacity="0.4" />
+
+                    <Border
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Background="Blue"
+                        Opacity="0.4" />
+                </Grid>
+            </TabItem>
         </TabControl>
 
     </Grid>
