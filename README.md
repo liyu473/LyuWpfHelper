@@ -77,6 +77,40 @@ public class MyViewModel
 }
 ```
 
+#### DataGridRowNumberBehavior
+DataGrid 行序号辅助，自动为每一行生成序号，并在数据变化时自动刷新。
+
+```xml
+<!-- 基本用法 -->
+<DataGrid ItemsSource="{Binding Items}"
+          lyu:DataGridRowNumberBehavior.IsEnabled="True" />
+
+<!-- 自定义序号列标题 -->
+<DataGrid ItemsSource="{Binding Items}"
+          lyu:DataGridRowNumberBehavior.IsEnabled="True"
+          lyu:DataGridRowNumberBehavior.HeaderText="No." />
+
+<!-- 从0开始计数 -->
+<DataGrid ItemsSource="{Binding Items}"
+          lyu:DataGridRowNumberBehavior.IsEnabled="True"
+          lyu:DataGridRowNumberBehavior.StartIndex="0" />
+```
+
+**属性：**
+- `IsEnabled` - 是否启用行序号（默认：false）
+- `HeaderText` - 序号列标题（默认："序号"）
+- `StartIndex` - 序号起始值（默认：1）
+
+**特性：**
+- 自动为每一行生成序号
+- 数据源变化时自动刷新序号
+- 支持自定义起始索引
+- 支持自定义列标题
+- **自动启用行头显示**（无需手动设置 HeadersVisibility）
+
+**注意：**
+序号显示在 DataGrid 的行头（RowHeader）中。启用此行为后，会自动设置 `HeadersVisibility` 属性以显示行头。
+
 ### 🏗️ ViewModel 基类 (ViewModels)
 
 #### ViewModelBase

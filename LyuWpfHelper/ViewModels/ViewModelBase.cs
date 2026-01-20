@@ -5,7 +5,7 @@ namespace LyuWpfHelper.ViewModels;
 
 /// <summary>
 /// ViewModel 基类
-/// 继承自 ObservableObject，并集成了 Messenger 信使功能
+/// 继承自 ObservableObject，集成了 Messenger 信使功能
 /// </summary>
 public abstract class ViewModelBase : ObservableObject
 {

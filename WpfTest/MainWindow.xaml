@@ -33,6 +33,8 @@
             <TabItem Header="datagrid  多选绑定">
                 <Grid>
                     <DataGrid
+                        lyu:DataGridRowNumberBehavior.HeaderText="序号"
+                        lyu:DataGridRowNumberBehavior.IsEnabled="True"
                         lyu:DataGridSelectedItemsBehavior.SelectedItems="{Binding SelectedData}"
                         CanUserAddRows="False"
                         ItemsSource="{Binding Datas}"
