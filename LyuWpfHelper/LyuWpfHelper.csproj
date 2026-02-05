@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0-windows;net9.0-windows;net10.0-windows</TargetFrameworks>
@@ -8,9 +8,9 @@
 
 		<!-- NuGet 包信息 -->
 		<PackageId>LyuWpfHelper</PackageId>
-		<Version>1.0.1</Version>
+		<Version>1.0.2</Version>
 		<Authors>Liyu</Authors>
-		<Description>一些wpf的辅助类，依赖mvvm社区包</Description>
+		<Description>一些wpf的辅助类/拓展，依赖mvvm社区包</Description>
 		<PackageTags>wpf;helper;mvvm</PackageTags>
 
 		<!-- GitHub 仓库信息 -->
