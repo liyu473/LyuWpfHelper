@@ -1,6 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.ObjectModel;
-using System.Windows;
+﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace WpfTest;
 
@@ -10,7 +9,7 @@ public partial class MainViewModel : ObservableObject
     {
         for (int i = 0; i < 8; i++)
         {
-            Datas.Add(new TestClass { Name = $"Test{i+1}" });
+            Datas.Add(new TestClass { Name = $"Test{i + 1}" });
         }
 
         SelectedData.CollectionChanged += SelectedData_CollectionChanged;
@@ -19,7 +18,10 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string testText = string.Empty;
 
-    private void SelectedData_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void SelectedData_CollectionChanged(
+        object? sender,
+        System.Collections.Specialized.NotifyCollectionChangedEventArgs e
+    )
     {
         TestText = $"总数为{SelectedData.Count}";
     }
