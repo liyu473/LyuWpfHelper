@@ -234,16 +234,29 @@ public static class LyuWindowHelper
             if (GetMonitorInfo(monitor, ref monitorInfo))
             {
                 var rect = monitorInfo.rcMonitor;
-                // 设置窗口位置和大小为整个屏幕
-                window.Left = rect.Left;
-                window.Top = rect.Top;
-                window.Width = rect.Right - rect.Left;
-                window.Height = rect.Bottom - rect.Top;
+                
+                // 获取 DPI 缩放因子，将物理像素转换为 WPF 逻辑像素
+                var source = PresentationSource.FromVisual(window);
+                double dpiScaleX = 1.0;
+                double dpiScaleY = 1.0;
+                
+                if (source?.CompositionTarget != null)
+                {
+                    var transform = source.CompositionTarget.TransformFromDevice;
+                    dpiScaleX = transform.M11;
+                    dpiScaleY = transform.M22;
+                }
+                
+                // 设置窗口位置和大小为整个屏幕（转换为逻辑像素）
+                window.Left = rect.Left * dpiScaleX;
+                window.Top = rect.Top * dpiScaleY;
+                window.Width = (rect.Right - rect.Left) * dpiScaleX;
+                window.Height = (rect.Bottom - rect.Top) * dpiScaleY;
             }
         }
         else
         {
-            // 如果无法获取屏幕信息，使用系统参数
+            // 如果无法获取屏幕信息，使用系统参数（已经是逻辑像素）
             window.Left = 0;
             window.Top = 0;
             window.Width = SystemParameters.PrimaryScreenWidth;

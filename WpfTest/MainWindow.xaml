@@ -83,30 +83,37 @@
             </TabItem>
 
             <TabItem Header="全屏功能">
-                <lyu:SimpleStackPanel
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Orientation="Vertical"
-                    Spacing="20">
-                    <TextBlock
-                        FontSize="16"
-                        FontWeight="Bold"
-                        Text="全屏功能演示" />
-                    <TextBlock Text="按 F11 键切换全屏模式" />
-                    <TextBlock Text="或点击下面的按钮：" />
-                    <Button
-                        Width="200"
-                        Height="40"
-                        Click="ToggleFullScreenButton_Click"
-                        Content="切换全屏" />
-                    <TextBlock
-                        Margin="0,20,0,0"
-                        Text="说明："
-                        TextWrapping="Wrap" />
-                    <TextBlock Text="• 全屏模式会隐藏标题栏和任务栏" TextWrapping="Wrap" />
-                    <TextBlock Text="• 窗口会占据整个屏幕" TextWrapping="Wrap" />
-                    <TextBlock Text="• 退出全屏后会恢复原来的窗口状态" TextWrapping="Wrap" />
-                </lyu:SimpleStackPanel>
+                <Grid RowDefinitions="*,Auto">
+                    <lyu:SimpleStackPanel
+                        Grid.Row="0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Orientation="Vertical"
+                        Spacing="20">
+                        <TextBlock
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Text="全屏功能演示" />
+                        <TextBlock Text="按 F11 键切换全屏模式" />
+                        <TextBlock Text="或点击下面的按钮：" />
+                        <Button
+                            Width="200"
+                            Height="40"
+                            Click="ToggleFullScreenButton_Click"
+                            Content="切换全屏" />
+                        <TextBlock
+                            Margin="0,20,0,0"
+                            Text="说明："
+                            TextWrapping="Wrap" />
+                        <TextBlock Text="• 全屏模式会隐藏标题栏和任务栏" TextWrapping="Wrap" />
+                        <TextBlock Text="• 窗口会占据整个屏幕" TextWrapping="Wrap" />
+                        <TextBlock Text="• 退出全屏后会恢复原来的窗口状态" TextWrapping="Wrap" />
+                    </lyu:SimpleStackPanel>
+
+                    <Border Grid.Row="1" CornerRadius="15" Height="30" Background="Red">
+                        
+                    </Border>
+                </Grid>
             </TabItem>
         </TabControl>
 
