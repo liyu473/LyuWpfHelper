@@ -6,34 +6,62 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:NotificationControl}">
-                    <Border Background="White"
-                            BorderThickness="1"
-                            CornerRadius="5"
-                            Padding="15,10">
+                    <Border x:Name="PART_MainBorder"
+                            CornerRadius="8"
+                            Padding="0">
                         <Border.Effect>
-                            <DropShadowEffect BlurRadius="10"
-                                            ShadowDepth="2"
-                                            Opacity="0.3"/>
+                            <DropShadowEffect x:Name="PART_Shadow"
+                                            BlurRadius="15"
+                                            ShadowDepth="3"
+                                            Opacity="0.3"
+                                            Color="#000000"/>
                         </Border.Effect>
+                        <Border.RenderTransform>
+                            <TranslateTransform x:Name="PART_Transform" Y="0"/>
+                        </Border.RenderTransform>
                         <Border.Style>
                             <Style TargetType="Border">
-                                <Setter Property="BorderBrush" Value="#E0E0E0"/>
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                            <GradientStop Color="#E3F2FD" Offset="0"/>
+                                            <GradientStop Color="White" Offset="0.3"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
-                                               Value="Information">
-                                        <Setter Property="BorderBrush" Value="#2196F3"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
                                                Value="Success">
-                                        <Setter Property="BorderBrush" Value="#4CAF50"/>
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                                    <GradientStop Color="#E8F5E9" Offset="0"/>
+                                                    <GradientStop Color="White" Offset="0.3"/>
+                                                </LinearGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
                                                Value="Warning">
-                                        <Setter Property="BorderBrush" Value="#FF9800"/>
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                                    <GradientStop Color="#FFF3E0" Offset="0"/>
+                                                    <GradientStop Color="White" Offset="0.3"/>
+                                                </LinearGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
                                                Value="Error">
-                                        <Setter Property="BorderBrush" Value="#F44336"/>
+                                        <Setter Property="Background">
+                                            <Setter.Value>
+                                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                                    <GradientStop Color="#FFEBEE" Offset="0"/>
+                                                    <GradientStop Color="White" Offset="0.3"/>
+                                                </LinearGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -43,106 +71,328 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- Icon -->
-                            <Path Grid.Column="0"
-                                  Width="24"
-                                  Height="24"
-                                  Margin="0,0,10,0"
-                                  Stretch="Uniform"
-                                  VerticalAlignment="Top">
-                                <Path.Style>
-                                    <Style TargetType="Path">
-                                        <Setter Property="Fill" Value="#2196F3"/>
-                                        <Setter Property="Data" Value="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"/>
+                            <!-- Left accent bar -->
+                            <Border x:Name="PART_AccentBar"
+                                   Grid.Column="0"
+                                   Width="4"
+                                   CornerRadius="8,0,0,8">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#2196F3"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
                                                        Value="Success">
-                                                <Setter Property="Fill" Value="#4CAF50"/>
-                                                <Setter Property="Data" Value="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"/>
+                                                <Setter Property="Background" Value="#4CAF50"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
                                                        Value="Warning">
-                                                <Setter Property="Fill" Value="#FF9800"/>
-                                                <Setter Property="Data" Value="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
+                                                <Setter Property="Background" Value="#FF9800"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
                                                        Value="Error">
-                                                <Setter Property="Fill" Value="#F44336"/>
-                                                <Setter Property="Data" Value="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z"/>
+                                                <Setter Property="Background" Value="#F44336"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Path.Style>
-                            </Path>
+                                </Border.Style>
+                            </Border>
 
-                            <!-- Content -->
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="{TemplateBinding Title}"
-                                          FontWeight="SemiBold"
-                                          FontSize="14"
-                                          TextWrapping="Wrap">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Visibility" Value="Visible"/>
+                            <!-- Content area -->
+                            <Grid Grid.Column="1" Margin="15,12,15,12">
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Icon with circular background -->
+                                <Border Grid.Column="0"
+                                       Width="40"
+                                       Height="40"
+                                       CornerRadius="20"
+                                       VerticalAlignment="Top"
+                                       Margin="0,0,12,0">
+                                    <Border.RenderTransform>
+                                        <ScaleTransform x:Name="PART_IconScale" ScaleX="1" ScaleY="1" CenterX="20" CenterY="20"/>
+                                    </Border.RenderTransform>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#262196F3"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Title, RelativeSource={RelativeSource TemplatedParent}}" Value="">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
+                                                           Value="Success">
+                                                    <Setter Property="Background" Value="#264CAF50"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Title, RelativeSource={RelativeSource TemplatedParent}}" Value="{x:Null}">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
+                                                           Value="Warning">
+                                                    <Setter Property="Background" Value="#26FF9800"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
+                                                           Value="Error">
+                                                    <Setter Property="Background" Value="#26F44336"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                                <TextBlock Text="{TemplateBinding Message}"
-                                          FontSize="13"
-                                          TextWrapping="Wrap"
-                                          Foreground="#666666"
-                                          Margin="0,2,0,0"/>
-                            </StackPanel>
+                                    </Border.Style>
 
-                            <!-- Close Button -->
-                            <Button x:Name="PART_CloseButton"
-                                   Grid.Column="2"
-                                   Width="20"
-                                   Height="20"
-                                   VerticalAlignment="Top"
-                                   Margin="10,0,0,0"
-                                   Background="Transparent"
-                                   BorderThickness="0"
-                                   Cursor="Hand">
-                                <Path Width="10"
-                                      Height="10"
-                                      Stretch="Uniform"
-                                      Fill="#999999"
-                                      Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}"
-                                                           CornerRadius="10">
-                                                        <ContentPresenter HorizontalAlignment="Center"
-                                                                        VerticalAlignment="Center"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="#F0F0F0"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
+                                    <Path Width="20"
+                                          Height="20"
+                                          Stretch="Uniform"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center">
+                                        <Path.Style>
+                                            <Style TargetType="Path">
+                                                <Setter Property="Fill" Value="#2196F3"/>
+                                                <Setter Property="Data" Value="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
+                                                               Value="Success">
+                                                        <Setter Property="Fill" Value="#4CAF50"/>
+                                                        <Setter Property="Data" Value="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
+                                                               Value="Warning">
+                                                        <Setter Property="Fill" Value="#FF9800"/>
+                                                        <Setter Property="Data" Value="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}"
+                                                               Value="Error">
+                                                        <Setter Property="Fill" Value="#F44336"/>
+                                                        <Setter Property="Data" Value="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Path.Style>
+                                    </Path>
+                                </Border>
+
+                                <!-- Content -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{TemplateBinding Title}"
+                                              FontWeight="SemiBold"
+                                              FontSize="15"
+                                              Foreground="#212121"
+                                              TextWrapping="Wrap">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Title, RelativeSource={RelativeSource TemplatedParent}}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Title, RelativeSource={RelativeSource TemplatedParent}}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{TemplateBinding Message}"
+                                              FontSize="13"
+                                              TextWrapping="Wrap"
+                                              Foreground="#757575"
+                                              Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <!-- Close Button -->
+                                <Button x:Name="PART_CloseButton"
+                                       Grid.Column="2"
+                                       Width="24"
+                                       Height="24"
+                                       VerticalAlignment="Top"
+                                       Margin="12,0,0,0"
+                                       Background="Transparent"
+                                       BorderThickness="0"
+                                       Cursor="Hand">
+                                    <Button.RenderTransform>
+                                        <TransformGroup>
+                                            <RotateTransform x:Name="PART_CloseRotate" Angle="0" CenterX="12" CenterY="12"/>
+                                            <ScaleTransform x:Name="PART_CloseScale" ScaleX="1" ScaleY="1" CenterX="12" CenterY="12"/>
+                                        </TransformGroup>
+                                    </Button.RenderTransform>
+                                    <Path Width="10"
+                                          Height="10"
+                                          Stretch="Uniform"
+                                          Fill="#BDBDBD"
+                                          Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="ButtonBorder"
+                                                   Background="{TemplateBinding Background}"
+                                                   CornerRadius="12">
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#1A000000"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
                         </Grid>
                     </Border>
+
+                    <ControlTemplate.Triggers>
+                        <!-- Mouse hover animation -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PART_Shadow"
+                                                       Storyboard.TargetProperty="BlurRadius"
+                                                       To="20"
+                                                       Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PART_Shadow"
+                                                       Storyboard.TargetProperty="ShadowDepth"
+                                                       To="5"
+                                                       Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PART_Transform"
+                                                       Storyboard.TargetProperty="Y"
+                                                       To="-2"
+                                                       Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PART_Shadow"
+                                                       Storyboard.TargetProperty="BlurRadius"
+                                                       To="15"
+                                                       Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PART_Shadow"
+                                                       Storyboard.TargetProperty="ShadowDepth"
+                                                       To="3"
+                                                       Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PART_Transform"
+                                                       Storyboard.TargetProperty="Y"
+                                                       To="0"
+                                                       Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <!-- Close button hover animation -->
+                        <Trigger SourceName="PART_CloseButton" Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PART_CloseRotate"
+                                                       Storyboard.TargetProperty="Angle"
+                                                       To="90"
+                                                       Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PART_CloseRotate"
+                                                       Storyboard.TargetProperty="Angle"
+                                                       To="0"
+                                                       Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <!-- Close button press animation -->
+                        <Trigger SourceName="PART_CloseButton" Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PART_CloseScale"
+                                                       Storyboard.TargetProperty="ScaleX"
+                                                       To="0.9"
+                                                       Duration="0:0:0.1"/>
+                                        <DoubleAnimation Storyboard.TargetName="PART_CloseScale"
+                                                       Storyboard.TargetProperty="ScaleY"
+                                                       To="0.9"
+                                                       Duration="0:0:0.1"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PART_CloseScale"
+                                                       Storyboard.TargetProperty="ScaleX"
+                                                       To="1"
+                                                       Duration="0:0:0.1"/>
+                                        <DoubleAnimation Storyboard.TargetName="PART_CloseScale"
+                                                       Storyboard.TargetProperty="ScaleY"
+                                                       To="1"
+                                                       Duration="0:0:0.1"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <!-- Icon load animation -->
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="PART_IconScale"
+                                                   Storyboard.TargetProperty="ScaleX"
+                                                   From="0.8"
+                                                   To="1"
+                                                   Duration="0:0:0.3">
+                                        <DoubleAnimation.EasingFunction>
+                                            <CubicEase EasingMode="EaseOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="PART_IconScale"
+                                                   Storyboard.TargetProperty="ScaleY"
+                                                   From="0.8"
+                                                   To="1"
+                                                   Duration="0:0:0.3">
+                                        <DoubleAnimation.EasingFunction>
+                                            <CubicEase EasingMode="EaseOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

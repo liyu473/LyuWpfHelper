@@ -1,8 +1,7 @@
-﻿using System.Windows;
+﻿using LyuWpfHelper.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using LyuWpfHelper.Extensions;
-using LyuWpfHelper.Services;
+using System.Windows;
 
 namespace WpfTest
 {
@@ -19,7 +18,7 @@ namespace WpfTest
                 .ConfigureServices((context, services) =>
                 {
                     // 注册 LyuWpfHelper 服务
-                    services.AddLyuWpfHelper();
+                    services.AddLyuNotificationService();
 
                     // 注册 ViewModel
                     services.AddSingleton<MainViewModel>();

@@ -13,7 +13,7 @@ namespace LyuWpfHelper.Extensions
         /// </summary>
         /// <param name="services">服务集合</param>
         /// <returns>服务集合</returns>
-        public static IServiceCollection AddLyuWpfHelper(this IServiceCollection services)
+        public static IServiceCollection AddLyuNotificationService(this IServiceCollection services)
         {
             services.AddSingleton<INotificationService, NotificationService>();
             return services;
