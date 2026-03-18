@@ -14,17 +14,20 @@ namespace LyuWpfHelper.Helpers
     public static class NotificationManager
     {
         private static NotificationContainerWindow? _containerWindow;
-        private static readonly object _lock = new object();
-        private static readonly Dictionary<NotificationPosition, List<NotificationItem>> _notifications = new Dictionary<NotificationPosition, List<NotificationItem>>();
+        private static readonly object _lock = new();
+        private static readonly Dictionary<
+            NotificationPosition,
+            List<NotificationItem>
+        > _notifications = [];
         private const int MaxNotificationsPerPosition = 5;
         private static Window? _ownerWindow;
 
         static NotificationManager()
         {
-            _notifications[NotificationPosition.TopRight] = new List<NotificationItem>();
-            _notifications[NotificationPosition.BottomRight] = new List<NotificationItem>();
-            _notifications[NotificationPosition.TopCenter] = new List<NotificationItem>();
-            _notifications[NotificationPosition.BottomCenter] = new List<NotificationItem>();
+            _notifications[NotificationPosition.TopRight] = [];
+            _notifications[NotificationPosition.BottomRight] = [];
+            _notifications[NotificationPosition.TopCenter] = [];
+            _notifications[NotificationPosition.BottomCenter] = [];
         }
 
         /// <summary>
@@ -44,22 +47,29 @@ namespace LyuWpfHelper.Helpers
         /// <param name="type">通知类型</param>
         /// <param name="position">显示位置</param>
         /// <param name="durationSeconds">显示时长（秒），0表示不自动关闭</param>
-        public static void Show(string title, string message, NotificationType type = NotificationType.Information,
-                               NotificationPosition position = NotificationPosition.TopRight,
-                               int durationSeconds = 3)
+        public static void Show(
+            string title,
+            string message,
+            NotificationType type = NotificationType.Information,
+            NotificationPosition position = NotificationPosition.TopRight,
+            int durationSeconds = 3
+        )
         {
             Application.Current?.Dispatcher.Invoke(() =>
             {
                 lock (_lock)
                 {
-                    EnsureContainerWindow();
+                    if (!EnsureContainerWindow())
+                    {
+                        return;
+                    }
 
                     var notifications = _notifications[position];
 
                     // 如果达到最大数量，移除最旧的
                     if (notifications.Count >= MaxNotificationsPerPosition)
                     {
-                        RemoveNotification(notifications[notifications.Count - 1], false);
+                        RemoveNotification(notifications[^1], false);
                     }
 
                     // 创建通知控件
@@ -69,21 +79,21 @@ namespace LyuWpfHelper.Helpers
                         Message = message,
                         NotificationType = type,
                         Margin = new Thickness(0, 0, 0, 10),
-                        IsHitTestVisible = true
+                        IsHitTestVisible = true,
                     };
 
                     // 创建通知项
                     var item = new NotificationItem
                     {
                         Control = notificationControl,
-                        Position = position
+                        Position = position,
                     };
 
                     // 设置关闭事件
                     notificationControl.Closed += (s, e) => RemoveNotification(item, true);
 
                     // 添加到容器
-                    var panel = _containerWindow.GetPanel(position);
+                    var panel = _containerWindow!.GetPanel(position);
                     panel.Children.Insert(0, notificationControl);
                     notifications.Insert(0, item);
 
@@ -95,7 +105,7 @@ namespace LyuWpfHelper.Helpers
                     {
                         item.Timer = new DispatcherTimer
                         {
-                            Interval = TimeSpan.FromSeconds(durationSeconds)
+                            Interval = TimeSpan.FromSeconds(durationSeconds),
                         };
                         item.Timer.Tick += (s, e) =>
                         {
@@ -108,19 +118,20 @@ namespace LyuWpfHelper.Helpers
             });
         }
 
-        private static void EnsureContainerWindow()
+        private static bool EnsureContainerWindow()
         {
             if (_containerWindow == null)
             {
                 var owner = _ownerWindow ?? Application.Current?.MainWindow;
                 if (owner == null)
                 {
-                    throw new InvalidOperationException("无法找到主窗口，请先调用 SetOwnerWindow 设置所有者窗口");
+                    return false;
                 }
 
                 _containerWindow = new NotificationContainerWindow(owner);
                 _containerWindow.Show();
             }
+            return true;
         }
 
         private static void RemoveNotification(NotificationItem item, bool animate)
@@ -138,16 +149,19 @@ namespace LyuWpfHelper.Helpers
 
                     if (animate)
                     {
-                        PlaySlideOutAnimation(item.Control, () =>
-                        {
-                            var panel = _containerWindow.GetPanel(item.Position);
-                            panel.Children.Remove(item.Control);
-                            CheckAndCloseContainer();
-                        });
+                        PlaySlideOutAnimation(
+                            item.Control,
+                            () =>
+                            {
+                                var panel = _containerWindow!.GetPanel(item.Position);
+                                panel.Children.Remove(item.Control);
+                                CheckAndCloseContainer();
+                            }
+                        );
                     }
                     else
                     {
-                        var panel = _containerWindow.GetPanel(item.Position);
+                        var panel = _containerWindow!.GetPanel(item.Position);
                         panel.Children.Remove(item.Control);
                         CheckAndCloseContainer();
                     }
@@ -164,25 +178,31 @@ namespace LyuWpfHelper.Helpers
             }
         }
 
-        private static void PlaySlideInAnimation(NotificationControl control, NotificationPosition position)
+        private static void PlaySlideInAnimation(
+            NotificationControl control,
+            NotificationPosition position
+        )
         {
             control.RenderTransform = new System.Windows.Media.TranslateTransform();
 
             var slideAnimation = new DoubleAnimation
             {
                 Duration = TimeSpan.FromMilliseconds(300),
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
             };
 
             var fadeAnimation = new DoubleAnimation
             {
                 From = 0,
                 To = 1,
-                Duration = TimeSpan.FromMilliseconds(300)
+                Duration = TimeSpan.FromMilliseconds(300),
             };
 
             // 根据位置设置滑入方向
-            if (position == NotificationPosition.TopRight || position == NotificationPosition.TopCenter)
+            if (
+                position == NotificationPosition.TopRight
+                || position == NotificationPosition.TopCenter
+            )
             {
                 slideAnimation.From = -100;
                 slideAnimation.To = 0;
@@ -193,7 +213,10 @@ namespace LyuWpfHelper.Helpers
                 slideAnimation.To = 0;
             }
 
-            control.RenderTransform.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, slideAnimation);
+            control.RenderTransform.BeginAnimation(
+                System.Windows.Media.TranslateTransform.YProperty,
+                slideAnimation
+            );
             control.BeginAnimation(UIElement.OpacityProperty, fadeAnimation);
         }
 
@@ -203,14 +226,14 @@ namespace LyuWpfHelper.Helpers
             {
                 From = 1,
                 To = 0,
-                Duration = TimeSpan.FromMilliseconds(200)
+                Duration = TimeSpan.FromMilliseconds(200),
             };
 
             var heightAnimation = new DoubleAnimation
             {
                 From = control.ActualHeight,
                 To = 0,
-                Duration = TimeSpan.FromMilliseconds(200)
+                Duration = TimeSpan.FromMilliseconds(200),
             };
 
             fadeAnimation.Completed += (s, e) => onCompleted?.Invoke();
