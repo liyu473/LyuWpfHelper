@@ -166,17 +166,23 @@ namespace LyuWpfHelper.Services
                             item.Control,
                             () =>
                             {
-                                var panel = _containerWindow!.GetPanel(item.Position);
-                                panel.Children.Remove(item.Control);
-                                CheckAndCloseContainer();
+                                if (_containerWindow != null)
+                                {
+                                    var panel = _containerWindow.GetPanel(item.Position);
+                                    panel.Children.Remove(item.Control);
+                                    CheckAndCloseContainer();
+                                }
                             }
                         );
                     }
                     else
                     {
-                        var panel = _containerWindow!.GetPanel(item.Position);
-                        panel.Children.Remove(item.Control);
-                        CheckAndCloseContainer();
+                        if (_containerWindow != null)
+                        {
+                            var panel = _containerWindow.GetPanel(item.Position);
+                            panel.Children.Remove(item.Control);
+                            CheckAndCloseContainer();
+                        }
                     }
                 }
             });

@@ -17,6 +17,151 @@
 
 ### 📦 控件 (Controls)
 
+#### NotificationService
+现代化的通知服务，支持多种通知类型和位置。
+
+**依赖注入配置（推荐）：**
+```csharp
+using LyuWpfHelper.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+
+// 在 App.xaml.cs 中配置服务
+public partial class App : Application
+{
+    public IServiceProvider ServiceProvider { get; private set; }
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        var services = new ServiceCollection();
+
+        // 注册通知服务
+        services.AddLyuNotificationService();
+
+        // 注册其他服务和 ViewModel
+        services.AddSingleton<MainViewModel>();
+        services.AddSingleton<MainWindow>();
+
+        ServiceProvider = services.BuildServiceProvider();
+
+        // 显示主窗口
+        var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+        mainWindow.Show();
+    }
+}
+
+// 在 MainWindow 中使用
+public partial class MainWindow : Window
+{
+    private readonly INotificationService _notificationService;
+
+    public MainWindow(INotificationService notificationService)
+    {
+        InitializeComponent();
+
+        _notificationService = notificationService;
+
+        // 设置所有者窗口（必须）
+        _notificationService.SetOwnerWindow(this);
+    }
+
+    private void ShowNotification()
+    {
+        _notificationService.Show("提示", "操作成功！");
+    }
+}
+```
+
+**手动创建实例：**
+```csharp
+using LyuWpfHelper.Services;
+using LyuWpfHelper.Controls;
+
+public class MainWindow : Window
+{
+    private readonly INotificationService _notificationService;
+
+    public MainWindow()
+    {
+        InitializeComponent();
+
+        // 手动创建通知服务实例
+        _notificationService = new NotificationService();
+
+        // 设置所有者窗口（必须）
+        _notificationService.SetOwnerWindow(this);
+    }
+
+    private void ShowNotification()
+    {
+        // 显示信息通知
+        _notificationService.Show(
+            title: "提示",
+            message: "操作成功完成！",
+            type: NotificationType.Information,
+            position: NotificationPosition.TopRight,
+            durationSeconds: 3
+        );
+    }
+}
+```
+
+**通知类型：**
+- `NotificationType.Information` - 信息通知（蓝色）
+- `NotificationType.Success` - 成功通知（绿色）
+- `NotificationType.Warning` - 警告通知（橙色）
+- `NotificationType.Error` - 错误通知（红色）
+
+**显示位置：**
+- `NotificationPosition.TopRight` - 右上角（默认）
+- `NotificationPosition.BottomRight` - 右下角
+- `NotificationPosition.TopCenter` - 中上
+- `NotificationPosition.BottomCenter` - 中下
+
+**参数说明：**
+- `title` - 通知标题
+- `message` - 通知内容
+- `type` - 通知类型（默认：Information）
+- `position` - 显示位置（默认：TopRight）
+- `durationSeconds` - 显示时长（秒），0 表示不自动关闭（默认：3）
+
+**示例：**
+```csharp
+// 成功通知
+_notificationService.Show("成功", "数据保存成功", NotificationType.Success);
+
+// 警告通知，显示在右下角
+_notificationService.Show(
+    "警告",
+    "磁盘空间不足",
+    NotificationType.Warning,
+    NotificationPosition.BottomRight
+);
+
+// 错误通知，不自动关闭
+_notificationService.Show(
+    "错误",
+    "网络连接失败",
+    NotificationType.Error,
+    durationSeconds: 0
+);
+```
+
+**特性：**
+- 精美的渐变背景和阴影效果
+- 平滑的滑入/滑出动画
+- 进度条倒计时显示
+- 支持手动关闭
+- 每个位置最多显示 5 个通知
+- 自动管理通知队列
+- 主窗口激活时显示，失去焦点时不会盖住其他应用
+
+**注意事项：**
+- 必须先调用 `SetOwnerWindow()` 设置所有者窗口
+- 通知窗口会跟随主窗口的位置和大小变化
+- 主窗口最小化时通知会自动隐藏
+
 #### SelectableTextBlock
 可选择和复制文本的 TextBlock，比普通 TextBlock 更实用。
 
