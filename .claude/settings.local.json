@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find d:companyMyselfNugetLyuWpfHelperLyuWpfHelper -type f -name *.xaml)"
+    ]
+  }
+}

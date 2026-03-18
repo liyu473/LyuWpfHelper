@@ -110,10 +110,144 @@
                         <TextBlock Text="• 退出全屏后会恢复原来的窗口状态" TextWrapping="Wrap" />
                     </lyu:SimpleStackPanel>
 
-                    <Border Grid.Row="1" CornerRadius="15" Height="30" Background="Red">
-                        
+                    <Border
+                        Grid.Row="1"
+                        Height="30"
+                        Background="Red"
+                        CornerRadius="15">
+
                     </Border>
                 </Grid>
+            </TabItem>
+
+            <TabItem Header="通知">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <lyu:SimpleStackPanel
+                        Margin="20"
+                        Orientation="Vertical"
+                        Spacing="20">
+
+                        <!--右上角通知-->
+                        <GroupBox Header="右上角通知 (TopRight)">
+                            <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowTopRightInfo_Click"
+                                    Content="信息通知 (3秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowTopRightSuccess_Click"
+                                    Content="成功通知 (3秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowTopRightWarning_Click"
+                                    Content="警告通知 (5秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowTopRightError_Click"
+                                    Content="错误通知 (10秒)" />
+                            </lyu:SimpleStackPanel>
+                        </GroupBox>
+
+                        <!--右下角通知-->
+                        <GroupBox Header="右下角通知 (BottomRight)">
+                            <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowBottomRightInfo_Click"
+                                    Content="信息通知 (3秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowBottomRightSuccess_Click"
+                                    Content="成功通知 (3秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowBottomRightWarning_Click"
+                                    Content="警告通知 (5秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowBottomRightError_Click"
+                                    Content="错误通知 (10秒)" />
+                            </lyu:SimpleStackPanel>
+                        </GroupBox>
+
+                        <!--中上通知-->
+                        <GroupBox Header="中上通知 (TopCenter)">
+                            <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowTopCenterInfo_Click"
+                                    Content="信息通知 (3秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowTopCenterSuccess_Click"
+                                    Content="成功通知 (3秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowTopCenterWarning_Click"
+                                    Content="警告通知 (5秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowTopCenterError_Click"
+                                    Content="错误通知 (10秒)" />
+                            </lyu:SimpleStackPanel>
+                        </GroupBox>
+
+                        <!--中下通知-->
+                        <GroupBox Header="中下通知 (BottomCenter)">
+                            <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowBottomCenterInfo_Click"
+                                    Content="信息通知 (3秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowBottomCenterSuccess_Click"
+                                    Content="成功通知 (3秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowBottomCenterWarning_Click"
+                                    Content="警告通知 (5秒)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowBottomCenterError_Click"
+                                    Content="错误通知 (10秒)" />
+                            </lyu:SimpleStackPanel>
+                        </GroupBox>
+
+                        <!--批量测试-->
+                        <GroupBox Header="批量测试">
+                            <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowMultipleNotifications_Click"
+                                    Content="显示多个通知 (测试最多5个)" />
+                                <Button
+                                    Width="200"
+                                    Height="35"
+                                    Click="ShowAllPositions_Click"
+                                    Content="所有位置同时显示" />
+                            </lyu:SimpleStackPanel>
+                        </GroupBox>
+                    </lyu:SimpleStackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
 
