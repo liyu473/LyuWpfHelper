@@ -113,7 +113,7 @@ namespace LyuWpfHelper.Controls
                    _bottomCenterPanel.Children.Count == 0;
         }
 
-        private void OnOwnerWindowLocationChanged(object sender, EventArgs e)
+        private void OnOwnerWindowLocationChanged(object? sender, EventArgs e)
         {
             UpdatePosition();
         }
@@ -123,7 +123,7 @@ namespace LyuWpfHelper.Controls
             UpdatePosition();
         }
 
-        private void OnOwnerWindowStateChanged(object sender, EventArgs e)
+        private void OnOwnerWindowStateChanged(object? sender, EventArgs e)
         {
             if (_ownerWindow.WindowState == WindowState.Minimized)
             {
