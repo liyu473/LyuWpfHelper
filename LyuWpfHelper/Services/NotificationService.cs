@@ -101,33 +101,31 @@ namespace LyuWpfHelper.Services
                     // 播放滑入动画
                     PlaySlideInAnimation(notificationControl, position);
 
-                    // 设置自动关闭计时器
+                    // 设置自动关闭动画
                     if (durationSeconds > 0)
                     {
                         notificationControl.Duration = durationSeconds;
-                        var startTime = DateTime.Now;
-                        var duration = TimeSpan.FromSeconds(durationSeconds);
 
-                        item.Timer = new DispatcherTimer
+                        // 使用动画平滑更新进度条
+                        var progressAnimation = new DoubleAnimation
                         {
-                            Interval = TimeSpan.FromMilliseconds(50),
+                            From = 1.0,
+                            To = 0.0,
+                            Duration = TimeSpan.FromSeconds(durationSeconds)
                         };
-                        item.Timer.Tick += (s, e) =>
-                        {
-                            var elapsed = DateTime.Now - startTime;
-                            var progress = 1.0 - (elapsed.TotalSeconds / duration.TotalSeconds);
 
-                            if (progress <= 0)
-                            {
-                                item.Timer.Stop();
-                                RemoveNotification(item, true);
-                            }
-                            else
-                            {
-                                notificationControl.RemainingProgress = Math.Max(0, progress);
-                            }
+                        progressAnimation.Completed += (s, e) =>
+                        {
+                            RemoveNotification(item, true);
                         };
-                        item.Timer.Start();
+
+                        notificationControl.BeginAnimation(
+                            NotificationControl.RemainingProgressProperty,
+                            progressAnimation
+                        );
+
+                        // 保存动画引用以便后续可以停止
+                        item.Animation = progressAnimation;
                     }
                 }
             });
@@ -155,9 +153,12 @@ namespace LyuWpfHelper.Services
             {
                 lock (_lock)
                 {
-                    // 停止计时器
-                    item.Timer?.Stop();
-                    item.Timer = null;
+                    // 停止进度动画
+                    if (item.Animation != null)
+                    {
+                        item.Control.BeginAnimation(NotificationControl.RemainingProgressProperty, null);
+                        item.Animation = null;
+                    }
 
                     var notifications = _notifications[item.Position];
                     notifications.Remove(item);
@@ -261,7 +262,7 @@ namespace LyuWpfHelper.Services
         {
             public NotificationControl Control { get; set; } = null!;
             public NotificationPosition Position { get; set; }
-            public DispatcherTimer? Timer { get; set; }
+            public DoubleAnimation? Animation { get; set; }
         }
     }
 }
