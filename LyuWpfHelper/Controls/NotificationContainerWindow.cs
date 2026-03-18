@@ -80,6 +80,7 @@ namespace LyuWpfHelper.Controls
             _ownerWindow.LocationChanged += OnOwnerWindowLocationChanged;
             _ownerWindow.SizeChanged += OnOwnerWindowSizeChanged;
             _ownerWindow.StateChanged += OnOwnerWindowStateChanged;
+            _ownerWindow.Activated += OnOwnerWindowActivated;
             _ownerWindow.Closed += OnOwnerWindowClosed;
 
             // 初始化位置
@@ -135,6 +136,17 @@ namespace LyuWpfHelper.Controls
             }
         }
 
+        private void OnOwnerWindowActivated(object? sender, EventArgs e)
+        {
+            // 全屏时，主窗口被激活会覆盖通知窗口，需要重新刷新 Z-order
+            bool isFullScreen = Helpers.LyuWindowHelper.GetIsFullScreen(_ownerWindow);
+            if (isFullScreen)
+            {
+                Topmost = false;
+                Topmost = true;
+            }
+        }
+
         private void OnOwnerWindowClosed(object? sender, EventArgs e)
         {
             Close();
@@ -145,35 +157,54 @@ namespace LyuWpfHelper.Controls
             if (_ownerWindow.WindowState == WindowState.Minimized)
                 return;
 
-            // 处理最大化状态：使用主窗口的实际渲染区域
-            if (_ownerWindow.WindowState == WindowState.Maximized)
-            {
-                // 最大化时，使用系统工作区
-                var source = PresentationSource.FromVisual(_ownerWindow);
-                if (source?.CompositionTarget != null)
-                {
-                    var screenBounds = SystemParameters.WorkArea;
+            // 检查是否全屏
+            bool isFullScreen = Helpers.LyuWindowHelper.GetIsFullScreen(_ownerWindow);
 
-                    Left = screenBounds.Left;
-                    Top = screenBounds.Top;
-                    Width = screenBounds.Width;
-                    Height = screenBounds.Height;
-                }
-                else
-                {
-                    // 备用方案：使用主窗口的实际尺寸
-                    Left = 0;
-                    Top = 0;
-                    Width = _ownerWindow.ActualWidth;
-                    Height = _ownerWindow.ActualHeight;
-                }
-            }
-            else
+            if (isFullScreen)
             {
+                // 全屏状态：覆盖整个窗口，无标题栏
                 Left = _ownerWindow.Left;
                 Top = _ownerWindow.Top;
                 Width = _ownerWindow.ActualWidth;
                 Height = _ownerWindow.ActualHeight;
+
+                // 强制通知窗口置于最顶层（解决与全屏主窗口的 Z-order 冲突）
+                Topmost = false;
+                Topmost = true;
+            }
+            else if (_ownerWindow.WindowState == WindowState.Maximized)
+            {
+                // 最大化状态：使用工作区，排除标题栏
+                var source = PresentationSource.FromVisual(_ownerWindow);
+                if (source?.CompositionTarget != null)
+                {
+                    var screenBounds = SystemParameters.WorkArea;
+                    double captionHeight = SystemParameters.WindowCaptionHeight;
+
+                    Left = screenBounds.Left;
+                    Top = screenBounds.Top + captionHeight;  // 排除标题栏
+                    Width = screenBounds.Width;
+                    Height = screenBounds.Height - captionHeight;
+                }
+                else
+                {
+                    // 备用方案
+                    double captionHeight = SystemParameters.WindowCaptionHeight;
+                    Left = 0;
+                    Top = captionHeight;
+                    Width = _ownerWindow.ActualWidth;
+                    Height = _ownerWindow.ActualHeight - captionHeight;
+                }
+            }
+            else
+            {
+                // 普通窗口状态：排除标题栏区域
+                double captionHeight = SystemParameters.WindowCaptionHeight;
+
+                Left = _ownerWindow.Left;
+                Top = _ownerWindow.Top + captionHeight;  // 向下偏移标题栏高度
+                Width = _ownerWindow.ActualWidth;
+                Height = _ownerWindow.ActualHeight - captionHeight;  // 减去标题栏高度
             }
         }
 
@@ -185,6 +216,7 @@ namespace LyuWpfHelper.Controls
                 _ownerWindow.LocationChanged -= OnOwnerWindowLocationChanged;
                 _ownerWindow.SizeChanged -= OnOwnerWindowSizeChanged;
                 _ownerWindow.StateChanged -= OnOwnerWindowStateChanged;
+                _ownerWindow.Activated -= OnOwnerWindowActivated;
                 _ownerWindow.Closed -= OnOwnerWindowClosed;
             }
             base.OnClosed(e);
