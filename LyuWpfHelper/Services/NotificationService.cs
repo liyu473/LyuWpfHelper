@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media.Animation;
-using System.Windows.Threading;
 using LyuWpfHelper.Controls;
 using LyuWpfHelper.Helpers;
+using System.Windows;
+using System.Windows.Media.Animation;
 
 namespace LyuWpfHelper.Services
 {
@@ -142,6 +138,7 @@ namespace LyuWpfHelper.Services
                 }
 
                 _containerWindow = new NotificationContainerWindow(owner);
+                _containerWindow.Owner = owner;
                 _containerWindow.Show();
             }
             return true;

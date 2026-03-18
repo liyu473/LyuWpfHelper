@@ -24,6 +24,7 @@ namespace LyuWpfHelper.Controls
             AllowsTransparency = true;
             Background = System.Windows.Media.Brushes.Transparent;
             ShowInTaskbar = false;
+            ShowActivated = false;
             Topmost = true;
             ResizeMode = ResizeMode.NoResize;
 
@@ -81,6 +82,7 @@ namespace LyuWpfHelper.Controls
             _ownerWindow.SizeChanged += OnOwnerWindowSizeChanged;
             _ownerWindow.StateChanged += OnOwnerWindowStateChanged;
             _ownerWindow.Activated += OnOwnerWindowActivated;
+            _ownerWindow.Deactivated += OnOwnerWindowDeactivated;
             _ownerWindow.Closed += OnOwnerWindowClosed;
 
             // 初始化位置
@@ -138,13 +140,14 @@ namespace LyuWpfHelper.Controls
 
         private void OnOwnerWindowActivated(object? sender, EventArgs e)
         {
-            // 全屏时，主窗口被激活会覆盖通知窗口，需要重新刷新 Z-order
-            bool isFullScreen = Helpers.LyuWindowHelper.GetIsFullScreen(_ownerWindow);
-            if (isFullScreen)
-            {
-                Topmost = false;
-                Topmost = true;
-            }
+            // 主窗口激活时设置为置顶
+            Topmost = true;
+        }
+
+        private void OnOwnerWindowDeactivated(object? sender, EventArgs e)
+        {
+            // 主窗口失去焦点时取消置顶，让其他应用可以覆盖
+            Topmost = false;
         }
 
         private void OnOwnerWindowClosed(object? sender, EventArgs e)
@@ -167,10 +170,6 @@ namespace LyuWpfHelper.Controls
                 Top = _ownerWindow.Top;
                 Width = _ownerWindow.ActualWidth;
                 Height = _ownerWindow.ActualHeight;
-
-                // 强制通知窗口置于最顶层（解决与全屏主窗口的 Z-order 冲突）
-                Topmost = false;
-                Topmost = true;
             }
             else if (_ownerWindow.WindowState == WindowState.Maximized)
             {
@@ -217,6 +216,7 @@ namespace LyuWpfHelper.Controls
                 _ownerWindow.SizeChanged -= OnOwnerWindowSizeChanged;
                 _ownerWindow.StateChanged -= OnOwnerWindowStateChanged;
                 _ownerWindow.Activated -= OnOwnerWindowActivated;
+                _ownerWindow.Deactivated -= OnOwnerWindowDeactivated;
                 _ownerWindow.Closed -= OnOwnerWindowClosed;
             }
             base.OnClosed(e);

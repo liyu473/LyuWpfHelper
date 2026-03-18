@@ -143,6 +143,7 @@ namespace LyuWpfHelper.Helpers
                 }
 
                 _containerWindow = new NotificationContainerWindow(owner);
+                _containerWindow.Owner = owner;
                 _containerWindow.Show();
             }
             return true;
