@@ -13,10 +13,11 @@ namespace LyuWpfHelper.Helpers
     /// </summary>
     public static class NotificationManager
     {
-        private static NotificationContainerWindow _containerWindow;
+        private static NotificationContainerWindow? _containerWindow;
         private static readonly object _lock = new object();
         private static readonly Dictionary<NotificationPosition, List<NotificationItem>> _notifications = new Dictionary<NotificationPosition, List<NotificationItem>>();
         private const int MaxNotificationsPerPosition = 5;
+        private static Window? _ownerWindow;
 
         static NotificationManager()
         {
@@ -24,6 +25,15 @@ namespace LyuWpfHelper.Helpers
             _notifications[NotificationPosition.BottomRight] = new List<NotificationItem>();
             _notifications[NotificationPosition.TopCenter] = new List<NotificationItem>();
             _notifications[NotificationPosition.BottomCenter] = new List<NotificationItem>();
+        }
+
+        /// <summary>
+        /// 设置通知的所有者窗口
+        /// </summary>
+        /// <param name="owner">所有者窗口</param>
+        public static void SetOwnerWindow(Window owner)
+        {
+            _ownerWindow = owner;
         }
 
         /// <summary>
@@ -102,7 +112,13 @@ namespace LyuWpfHelper.Helpers
         {
             if (_containerWindow == null)
             {
-                _containerWindow = new NotificationContainerWindow();
+                var owner = _ownerWindow ?? Application.Current?.MainWindow;
+                if (owner == null)
+                {
+                    throw new InvalidOperationException("无法找到主窗口，请先调用 SetOwnerWindow 设置所有者窗口");
+                }
+
+                _containerWindow = new NotificationContainerWindow(owner);
                 _containerWindow.Show();
             }
         }
@@ -205,9 +221,9 @@ namespace LyuWpfHelper.Helpers
 
         private class NotificationItem
         {
-            public NotificationControl Control { get; set; }
+            public NotificationControl Control { get; set; } = null!;
             public NotificationPosition Position { get; set; }
-            public DispatcherTimer Timer { get; set; }
+            public DispatcherTimer? Timer { get; set; }
         }
     }
 }

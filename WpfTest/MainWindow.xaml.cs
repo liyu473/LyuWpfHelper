@@ -15,6 +15,8 @@ public partial class MainWindow : Window
         InitializeComponent();
         _vm = new();
         DataContext = _vm;
+
+        NotificationManager.SetOwnerWindow(this);
     }
 
     private void ToggleFullScreenButton_Click(object sender, RoutedEventArgs e)
