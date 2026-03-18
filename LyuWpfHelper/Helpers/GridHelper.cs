@@ -137,9 +137,9 @@ public static class GridHelper
             return new GridLength(1, GridUnitType.Star);
 
         // 带数字的 Star (2*, 3* 等)
-        if (value.EndsWith("*"))
+        if (value.EndsWith('*'))
         {
-            var numberPart = value.Substring(0, value.Length - 1);
+            var numberPart = value[..^1];
             if (double.TryParse(numberPart, out double starValue))
                 return new GridLength(starValue, GridUnitType.Star);
         }

@@ -26,6 +26,14 @@ public class NotificationControl : ContentControl
     public static readonly DependencyProperty IconProperty =
         DependencyProperty.Register(nameof(Icon), typeof(Geometry), typeof(NotificationControl));
 
+    public static readonly DependencyProperty RemainingProgressProperty =
+        DependencyProperty.Register(nameof(RemainingProgress), typeof(double), typeof(NotificationControl),
+            new PropertyMetadata(1.0));
+
+    public static readonly DependencyProperty DurationProperty =
+        DependencyProperty.Register(nameof(Duration), typeof(double), typeof(NotificationControl),
+            new PropertyMetadata(0.0));
+
     public string Title
     {
         get => (string)GetValue(TitleProperty);
@@ -48,6 +56,18 @@ public class NotificationControl : ContentControl
     {
         get => (Geometry?)GetValue(IconProperty);
         set => SetValue(IconProperty, value);
+    }
+
+    public double RemainingProgress
+    {
+        get => (double)GetValue(RemainingProgressProperty);
+        set => SetValue(RemainingProgressProperty, value);
+    }
+
+    public double Duration
+    {
+        get => (double)GetValue(DurationProperty);
+        set => SetValue(DurationProperty, value);
     }
 
     public event EventHandler? Closed;

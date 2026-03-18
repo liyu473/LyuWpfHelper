@@ -104,14 +104,28 @@ namespace LyuWpfHelper.Services
                     // 设置自动关闭计时器
                     if (durationSeconds > 0)
                     {
+                        notificationControl.Duration = durationSeconds;
+                        var startTime = DateTime.Now;
+                        var duration = TimeSpan.FromSeconds(durationSeconds);
+
                         item.Timer = new DispatcherTimer
                         {
-                            Interval = TimeSpan.FromSeconds(durationSeconds),
+                            Interval = TimeSpan.FromMilliseconds(50),
                         };
                         item.Timer.Tick += (s, e) =>
                         {
-                            item.Timer.Stop();
-                            RemoveNotification(item, true);
+                            var elapsed = DateTime.Now - startTime;
+                            var progress = 1.0 - (elapsed.TotalSeconds / duration.TotalSeconds);
+
+                            if (progress <= 0)
+                            {
+                                item.Timer.Stop();
+                                RemoveNotification(item, true);
+                            }
+                            else
+                            {
+                                notificationControl.RemainingProgress = Math.Max(0, progress);
+                            }
                         };
                         item.Timer.Start();
                     }
