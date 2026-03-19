@@ -120,6 +120,152 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="过渡动画控件">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <lyu:SimpleStackPanel
+                        Margin="20"
+                        Orientation="Vertical"
+                        Spacing="30">
+
+                        <!--  演示区域  -->
+                        <GroupBox Header="动画演示区">
+                            <Border
+                                Width="400"
+                                Height="300"
+                                Background="#F5F5F5"
+                                BorderBrush="#E0E0E0"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                                <lyu:TransitioningContentControl
+                                    x:Name="TransitionControl"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                    <Border
+                                        Padding="40,30"
+                                        Background="White"
+                                        BorderBrush="#2196F3"
+                                        BorderThickness="2"
+                                        CornerRadius="8">
+                                        <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
+                                            <TextBlock
+                                                FontSize="24"
+                                                FontWeight="Bold"
+                                                Foreground="#2196F3"
+                                                Text="Hello World" />
+                                            <TextBlock
+                                                FontSize="14"
+                                                Foreground="#757575"
+                                                Text="这是一个过渡动画控件演示" />
+                                        </lyu:SimpleStackPanel>
+                                    </Border>
+                                </lyu:TransitioningContentControl>
+                            </Border>
+                        </GroupBox>
+
+                        <!--  动画模式选择  -->
+                        <GroupBox Header="选择动画模式">
+                            <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
+                                <lyu:SimpleStackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Width="150"
+                                        Height="35"
+                                        Click="SetTransitionMode_Click"
+                                        Content="Right2Left"
+                                        Tag="Right2Left" />
+                                    <Button
+                                        Width="150"
+                                        Height="35"
+                                        Click="SetTransitionMode_Click"
+                                        Content="Left2Right"
+                                        Tag="Left2Right" />
+                                    <Button
+                                        Width="150"
+                                        Height="35"
+                                        Click="SetTransitionMode_Click"
+                                        Content="Bottom2Top"
+                                        Tag="Bottom2Top" />
+                                    <Button
+                                        Width="150"
+                                        Height="35"
+                                        Click="SetTransitionMode_Click"
+                                        Content="Top2Bottom"
+                                        Tag="Top2Bottom" />
+                                </lyu:SimpleStackPanel>
+                                <lyu:SimpleStackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button
+                                        Width="150"
+                                        Height="35"
+                                        Click="SetTransitionMode_Click"
+                                        Content="Right2Left + Fade"
+                                        Tag="Right2LeftWithFade" />
+                                    <Button
+                                        Width="150"
+                                        Height="35"
+                                        Click="SetTransitionMode_Click"
+                                        Content="Left2Right + Fade"
+                                        Tag="Left2RightWithFade" />
+                                    <Button
+                                        Width="150"
+                                        Height="35"
+                                        Click="SetTransitionMode_Click"
+                                        Content="Bottom2Top + Fade"
+                                        Tag="Bottom2TopWithFade" />
+                                    <Button
+                                        Width="150"
+                                        Height="35"
+                                        Click="SetTransitionMode_Click"
+                                        Content="Top2Bottom + Fade"
+                                        Tag="Top2BottomWithFade" />
+                                </lyu:SimpleStackPanel>
+                                <Button
+                                    Width="150"
+                                    Height="35"
+                                    Click="SetTransitionMode_Click"
+                                    Content="Fade Only"
+                                    Tag="Fade" />
+                            </lyu:SimpleStackPanel>
+                        </GroupBox>
+
+                        <!--  内容切换测试  -->
+                        <GroupBox Header="切换内容测试">
+                            <lyu:SimpleStackPanel Orientation="Horizontal" Spacing="10">
+                                <Button
+                                    Width="150"
+                                    Height="35"
+                                    Click="ChangeContent_Click"
+                                    Content="切换到内容 1"
+                                    Tag="1" />
+                                <Button
+                                    Width="150"
+                                    Height="35"
+                                    Click="ChangeContent_Click"
+                                    Content="切换到内容 2"
+                                    Tag="2" />
+                                <Button
+                                    Width="150"
+                                    Height="35"
+                                    Click="ChangeContent_Click"
+                                    Content="切换到内容 3"
+                                    Tag="3" />
+                            </lyu:SimpleStackPanel>
+                        </GroupBox>
+
+                        <!--  说明  -->
+                        <GroupBox Header="使用说明">
+                            <lyu:SimpleStackPanel Orientation="Vertical" Spacing="8">
+                                <TextBlock Text="• 选择不同的动画模式，然后切换内容查看效果" />
+                                <TextBlock Text="• Right2Left: 从右向左滑入" />
+                                <TextBlock Text="• Left2Right: 从左向右滑入" />
+                                <TextBlock Text="• Bottom2Top: 从下向上滑入" />
+                                <TextBlock Text="• Top2Bottom: 从上向下滑入" />
+                                <TextBlock Text="• WithFade: 带淡入效果" />
+                                <TextBlock Text="• Fade: 仅淡入效果" />
+                            </lyu:SimpleStackPanel>
+                        </GroupBox>
+                    </lyu:SimpleStackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <TabItem Header="通知">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <lyu:SimpleStackPanel
@@ -127,7 +273,7 @@
                         Orientation="Vertical"
                         Spacing="20">
 
-                        <!--右上角通知-->
+                        <!--  右上角通知  -->
                         <GroupBox Header="右上角通知 (TopRight)">
                             <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
                                 <Button
@@ -153,7 +299,7 @@
                             </lyu:SimpleStackPanel>
                         </GroupBox>
 
-                        <!--右下角通知-->
+                        <!--  右下角通知  -->
                         <GroupBox Header="右下角通知 (BottomRight)">
                             <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
                                 <Button
@@ -179,7 +325,7 @@
                             </lyu:SimpleStackPanel>
                         </GroupBox>
 
-                        <!--中上通知-->
+                        <!--  中上通知  -->
                         <GroupBox Header="中上通知 (TopCenter)">
                             <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
                                 <Button
@@ -205,7 +351,7 @@
                             </lyu:SimpleStackPanel>
                         </GroupBox>
 
-                        <!--中下通知-->
+                        <!--  中下通知  -->
                         <GroupBox Header="中下通知 (BottomCenter)">
                             <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
                                 <Button
@@ -231,7 +377,7 @@
                             </lyu:SimpleStackPanel>
                         </GroupBox>
 
-                        <!--批量测试-->
+                        <!--  批量测试  -->
                         <GroupBox Header="批量测试">
                             <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
                                 <Button

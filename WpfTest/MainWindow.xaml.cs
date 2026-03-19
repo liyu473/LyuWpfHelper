@@ -1,7 +1,10 @@
 using LyuWpfHelper.Controls;
 using LyuWpfHelper.Helpers;
+using LyuWpfHelper.Panels;
 using LyuWpfHelper.Services;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace WpfTest;
 
@@ -134,5 +137,117 @@ public partial class MainWindow : Window
         _notificationService.Show("右下", "右下角通知", NotificationType.Success, NotificationPosition.BottomRight, 5);
         _notificationService.Show("中上", "中上通知", NotificationType.Warning, NotificationPosition.TopCenter, 5);
         _notificationService.Show("中下", "中下通知", NotificationType.Error, NotificationPosition.BottomCenter, 5);
+    }
+
+    // TransitioningContentControl 测试
+    private void SetTransitionMode_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string modeString)
+        {
+            if (Enum.TryParse<TransitionMode>(modeString, out var mode))
+            {
+                TransitionControl.TransitionMode = mode;
+            }
+        }
+    }
+
+    private void ChangeContent_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string contentNumber)
+        {
+            Border newContent = contentNumber switch
+            {
+                "1" => new Border
+                {
+                    Padding = new Thickness(40, 30, 40, 30),
+                    Background = Brushes.White,
+                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4CAF50")!),
+                    BorderThickness = new Thickness(2),
+                    CornerRadius = new CornerRadius(8),
+                    Child = new SimpleStackPanel
+                    {
+                        Orientation = System.Windows.Controls.Orientation.Vertical,
+                        Spacing = 10,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = "内容 1",
+                                FontSize = 24,
+                                FontWeight = FontWeights.Bold,
+                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4CAF50")!)
+                            },
+                            new TextBlock
+                            {
+                                Text = "这是第一个内容",
+                                FontSize = 14,
+                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#757575")!)
+                            }
+                        }
+                    }
+                },
+                "2" => new Border
+                {
+                    Padding = new Thickness(40, 30, 40, 30),
+                    Background = Brushes.White,
+                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF9800")!),
+                    BorderThickness = new Thickness(2),
+                    CornerRadius = new CornerRadius(8),
+                    Child = new SimpleStackPanel
+                    {
+                        Orientation = System.Windows.Controls.Orientation.Vertical,
+                        Spacing = 10,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = "内容 2",
+                                FontSize = 24,
+                                FontWeight = FontWeights.Bold,
+                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF9800")!)
+                            },
+                            new TextBlock
+                            {
+                                Text = "这是第二个内容",
+                                FontSize = 14,
+                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#757575")!)
+                            }
+                        }
+                    }
+                },
+                "3" => new Border
+                {
+                    Padding = new Thickness(40, 30, 40, 30),
+                    Background = Brushes.White,
+                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F44336")!),
+                    BorderThickness = new Thickness(2),
+                    CornerRadius = new CornerRadius(8),
+                    Child = new SimpleStackPanel
+                    {
+                        Orientation = System.Windows.Controls.Orientation.Vertical,
+                        Spacing = 10,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = "内容 3",
+                                FontSize = 24,
+                                FontWeight = FontWeights.Bold,
+                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F44336")!)
+                            },
+                            new TextBlock
+                            {
+                                Text = "这是第三个内容",
+                                FontSize = 14,
+                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#757575")!)
+                            }
+                        }
+                    }
+                },
+                _ => throw new ArgumentException("Invalid content number")
+            };
+
+            TransitionControl.Content = newContent;
+        }
     }
 }

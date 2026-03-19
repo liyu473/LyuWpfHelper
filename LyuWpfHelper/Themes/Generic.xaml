@@ -2,6 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:LyuWpfHelper.Controls">
 
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/LyuWpfHelper;component/Themes/TransitioningContentControl.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
     <Style TargetType="{x:Type controls:NotificationControl}">
         <Setter Property="MinWidth" Value="320"/>
         <Setter Property="MaxWidth" Value="400"/>
