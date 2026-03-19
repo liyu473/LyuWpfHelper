@@ -104,8 +104,84 @@ namespace LyuWpfHelper.Services
 
                     // 添加到容器
                     var panel = _adorner!.GetPanel(position);
-                    panel.Children.Insert(0, notificationControl);
-                    notifications.Insert(0, item);
+
+                    // 保存现有通知的当前位置
+                    var existingChildren = new List<(UIElement child, double currentY)>();
+                    foreach (UIElement child in panel.Children)
+                    {
+                        var transform = child.RenderTransform as System.Windows.Media.TranslateTransform;
+                        double currentY = transform?.Y ?? 0;
+                        existingChildren.Add((child, currentY));
+                    }
+
+                    // 根据位置决定插入位置
+                    if (position == NotificationPosition.TopRight || position == NotificationPosition.TopCenter)
+                    {
+                        // 顶部位置：新通知插入到最上方（index 0）
+                        panel.Children.Insert(0, notificationControl);
+                        notifications.Insert(0, item);
+                    }
+                    else
+                    {
+                        // 底部位置：新通知添加到最下方（末尾）
+                        panel.Children.Add(notificationControl);
+                        notifications.Insert(0, item); // 列表仍然保持新的在前面，方便管理
+                    }
+
+                    // 强制布局更新
+                    panel.UpdateLayout();
+
+                    // 获取新通知的实际高度
+                    double newNotificationHeight = notificationControl.ActualHeight > 0
+                        ? notificationControl.ActualHeight
+                        : notificationControl.DesiredSize.Height;
+                    double pushDistance = newNotificationHeight + 10; // 10 是 spacing
+
+                    // 动画现有通知
+                    if (position == NotificationPosition.TopRight || position == NotificationPosition.TopCenter)
+                    {
+                        // 顶部：将现有通知临时偏移回原位置，然后向下推
+                        foreach (var (child, oldY) in existingChildren)
+                        {
+                            if (child.RenderTransform is not System.Windows.Media.TranslateTransform)
+                            {
+                                child.RenderTransform = new System.Windows.Media.TranslateTransform();
+                            }
+                            var transform = (System.Windows.Media.TranslateTransform)child.RenderTransform;
+                            transform.Y = oldY - pushDistance; // 向上偏移，抵消布局向下移动
+
+                            var pushAnimation = new DoubleAnimation
+                            {
+                                From = oldY - pushDistance,
+                                To = oldY,
+                                Duration = TimeSpan.FromMilliseconds(300),
+                                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                            };
+                            transform.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, pushAnimation);
+                        }
+                    }
+                    else
+                    {
+                        // 底部：将现有通知临时偏移回原位置，然后向上推
+                        foreach (var (child, oldY) in existingChildren)
+                        {
+                            if (child.RenderTransform is not System.Windows.Media.TranslateTransform)
+                            {
+                                child.RenderTransform = new System.Windows.Media.TranslateTransform();
+                            }
+                            var transform = (System.Windows.Media.TranslateTransform)child.RenderTransform;
+                            transform.Y = oldY + pushDistance; // 向下偏移，抵消布局向上移动
+
+                            var pushAnimation = new DoubleAnimation
+                            {
+                                From = oldY + pushDistance,
+                                To = oldY,
+                                Duration = TimeSpan.FromMilliseconds(300),
+                                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                            };
+                            transform.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, pushAnimation);
+                        }
+                    }
 
                     // 播放滑入动画
                     PlaySlideInAnimation(notificationControl, position);
