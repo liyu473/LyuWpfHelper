@@ -2,7 +2,6 @@ using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
 
 namespace LyuWpfHelper.Behaviors;
 
@@ -102,10 +101,10 @@ public static class DataGridRowNumberBehavior
         if ((bool)e.NewValue)
         {
             AddRowNumberColumn(dataGrid);
-            
+
             dataGrid.LoadingRow += OnLoadingRow;
             dataGrid.Sorting += OnSorting;
-            
+
             // 监听数据源变化
             var descriptor = System.ComponentModel.DependencyPropertyDescriptor.FromProperty(
                 ItemsControl.ItemsSourceProperty, typeof(DataGrid));
@@ -190,7 +189,7 @@ public static class DataGridRowNumberBehavior
         {
             collection.CollectionChanged += (s, args) => RefreshRowNumbers(dataGrid);
         }
-        
+
         RefreshRowNumbers(dataGrid);
     }
 
@@ -221,7 +220,7 @@ public static class DataGridRowNumberBehavior
 
         int startIndex = GetStartIndex(dataGrid);
         int index = dataGrid.ItemContainerGenerator.IndexFromContainer(row);
-        
+
         if (index >= 0 && row.Item is not null)
         {
             // 更新单元格内容
@@ -251,7 +250,7 @@ public static class DataGridRowNumberBehavior
         dataGrid.Dispatcher.BeginInvoke(new Action(() =>
         {
             int startIndex = GetStartIndex(dataGrid);
-            
+
             for (int i = 0; i < dataGrid.Items.Count; i++)
             {
                 var item = dataGrid.Items[i];
@@ -297,7 +296,7 @@ public static class DataGridRowNumberBehavior
     {
         T? child = null;
         int numVisuals = System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent);
-        
+
         for (int i = 0; i < numVisuals; i++)
         {
             var v = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
@@ -305,7 +304,7 @@ public static class DataGridRowNumberBehavior
             if (child != null)
                 break;
         }
-        
+
         return child;
     }
 }
