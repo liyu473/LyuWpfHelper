@@ -137,8 +137,10 @@ namespace LyuWpfHelper.Services
                     return false;
                 }
 
-                _containerWindow = new NotificationContainerWindow(owner);
-                _containerWindow.Owner = owner;
+                _containerWindow = new NotificationContainerWindow(owner)
+                {
+                    Owner = owner
+                };
                 _containerWindow.Show();
             }
             return true;

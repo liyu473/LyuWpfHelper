@@ -20,7 +20,18 @@
 #### NotificationService
 现代化的通知服务，支持多种通知类型和位置。
 
-**依赖注入配置（推荐）：**
+**前提准备**
+
+```xaml
+<ResourceDictionary>
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/LyuWpfHelper;component/Themes/Generic.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>
+```
+
+**依赖注入配置（推荐）（配合LyuExtensions使用，体验更佳）：**
+
 ```csharp
 using LyuWpfHelper.Extensions;
 using Microsoft.Extensions.DependencyInjection;
