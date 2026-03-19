@@ -1,7 +1,9 @@
+using System.Windows;
+using System.Windows.Documents;
+using System.Windows.Media.Animation;
+using LyuWpfHelper.Adorners;
 using LyuWpfHelper.Controls;
 using LyuWpfHelper.Helpers;
-using System.Windows;
-using System.Windows.Media.Animation;
 
 namespace LyuWpfHelper.Services
 {
@@ -10,12 +12,11 @@ namespace LyuWpfHelper.Services
     /// </summary>
     public class NotificationService : INotificationService
     {
-        private NotificationContainerWindow? _containerWindow;
+        private NotificationAdorner? _adorner;
+        private AdornerLayer? _adornerLayer;
         private readonly object _lock = new();
-        private readonly Dictionary<
-            NotificationPosition,
-            List<NotificationItem>
-        > _notifications = [];
+        private readonly Dictionary<NotificationPosition, List<NotificationItem>> _notifications =
+        [];
         private const int MaxNotificationsPerPosition = 5;
         private Window? _ownerWindow;
 
@@ -33,7 +34,20 @@ namespace LyuWpfHelper.Services
         /// <param name="owner">所有者窗口</param>
         public void SetOwnerWindow(Window owner)
         {
+            // Clean up previous owner if changing
+            if (_ownerWindow != null && _ownerWindow != owner)
+            {
+                RemoveAdorner();
+                _ownerWindow.Closed -= OnOwnerWindowClosed;
+            }
+
             _ownerWindow = owner;
+
+            // Pre-initialize adorner layer
+            if (_ownerWindow != null)
+            {
+                InitializeAdornerLayer();
+            }
         }
 
         /// <summary>
@@ -56,7 +70,7 @@ namespace LyuWpfHelper.Services
             {
                 lock (_lock)
                 {
-                    if (!EnsureContainerWindow())
+                    if (!EnsureAdorner())
                     {
                         return;
                     }
@@ -75,7 +89,6 @@ namespace LyuWpfHelper.Services
                         Title = title,
                         Message = message,
                         NotificationType = type,
-                        Margin = new Thickness(0, 0, 0, 10),
                         IsHitTestVisible = true,
                     };
 
@@ -90,7 +103,7 @@ namespace LyuWpfHelper.Services
                     notificationControl.Closed += (s, e) => RemoveNotification(item, true);
 
                     // 添加到容器
-                    var panel = _containerWindow!.GetPanel(position);
+                    var panel = _adorner!.GetPanel(position);
                     panel.Children.Insert(0, notificationControl);
                     notifications.Insert(0, item);
 
@@ -107,7 +120,7 @@ namespace LyuWpfHelper.Services
                         {
                             From = 1.0,
                             To = 0.0,
-                            Duration = TimeSpan.FromSeconds(durationSeconds)
+                            Duration = TimeSpan.FromSeconds(durationSeconds),
                         };
 
                         progressAnimation.Completed += (s, e) =>
@@ -127,23 +140,66 @@ namespace LyuWpfHelper.Services
             });
         }
 
-        private bool EnsureContainerWindow()
+        private void InitializeAdornerLayer()
         {
-            if (_containerWindow == null)
+            if (_ownerWindow?.Content is UIElement content)
             {
-                var owner = _ownerWindow ?? Application.Current?.MainWindow;
-                if (owner == null)
-                {
-                    return false;
-                }
+                _adornerLayer = AdornerLayer.GetAdornerLayer(content);
 
-                _containerWindow = new NotificationContainerWindow(owner)
-                {
-                    Owner = owner
-                };
-                _containerWindow.Show();
+                // Fallback: try window itself
+                _adornerLayer ??= AdornerLayer.GetAdornerLayer(_ownerWindow);
+
+                // Subscribe to cleanup event
+                _ownerWindow.Closed += OnOwnerWindowClosed;
             }
-            return true;
+
+            if (_adornerLayer == null)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "Warning: AdornerLayer not available. Window.Content may not be set."
+                );
+            }
+        }
+
+        private void OnOwnerWindowClosed(object? sender, EventArgs e)
+        {
+            RemoveAdorner();
+            if (_ownerWindow == null)
+            {
+                return;
+            }
+            _ownerWindow.Closed -= OnOwnerWindowClosed;
+        }
+
+        private bool EnsureAdorner()
+        {
+            if (_adorner != null)
+                return true;
+
+            var owner = _ownerWindow ?? Application.Current?.MainWindow;
+            if (owner == null)
+                return false;
+
+            if (_adornerLayer == null)
+            {
+                _ownerWindow = owner;
+                InitializeAdornerLayer();
+            }
+
+            if (_adornerLayer == null)
+            {
+                System.Diagnostics.Debug.WriteLine("Warning: AdornerLayer not available.");
+                return false;
+            }
+
+            if (owner.Content is UIElement content)
+            {
+                _adorner = new NotificationAdorner(content);
+                _adornerLayer.Add(_adorner);
+                return true;
+            }
+
+            return false;
         }
 
         private void RemoveNotification(NotificationItem item, bool animate)
@@ -152,10 +208,21 @@ namespace LyuWpfHelper.Services
             {
                 lock (_lock)
                 {
-                    // 停止进度动画
+                    // 停止进度动画并保持当前值
                     if (item.Animation != null)
                     {
-                        item.Control.BeginAnimation(NotificationControl.RemainingProgressProperty, null);
+                        // 获取当前进度值
+                        var currentProgress = item.Control.RemainingProgress;
+
+                        // 停止动画
+                        item.Control.BeginAnimation(
+                            NotificationControl.RemainingProgressProperty,
+                            null
+                        );
+
+                        // 恢复当前值，防止跳变
+                        item.Control.RemainingProgress = currentProgress;
+
                         item.Animation = null;
                     }
 
@@ -168,34 +235,42 @@ namespace LyuWpfHelper.Services
                             item.Control,
                             () =>
                             {
-                                if (_containerWindow != null)
+                                if (_adorner != null)
                                 {
-                                    var panel = _containerWindow.GetPanel(item.Position);
+                                    var panel = _adorner.GetPanel(item.Position);
                                     panel.Children.Remove(item.Control);
-                                    CheckAndCloseContainer();
+                                    CheckAndRemoveAdorner();
                                 }
                             }
                         );
                     }
                     else
                     {
-                        if (_containerWindow != null)
+                        if (_adorner != null)
                         {
-                            var panel = _containerWindow.GetPanel(item.Position);
+                            var panel = _adorner.GetPanel(item.Position);
                             panel.Children.Remove(item.Control);
-                            CheckAndCloseContainer();
+                            CheckAndRemoveAdorner();
                         }
                     }
                 }
             });
         }
 
-        private void CheckAndCloseContainer()
+        private void CheckAndRemoveAdorner()
         {
-            if (_containerWindow != null && _containerWindow.IsEmpty())
+            if (_adorner != null && _adorner.IsEmpty())
             {
-                _containerWindow.Close();
-                _containerWindow = null;
+                RemoveAdorner();
+            }
+        }
+
+        private void RemoveAdorner()
+        {
+            if (_adorner != null && _adornerLayer != null)
+            {
+                _adornerLayer.Remove(_adorner);
+                _adorner = null;
             }
         }
 
