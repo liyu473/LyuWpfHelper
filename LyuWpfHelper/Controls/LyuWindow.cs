@@ -391,6 +391,7 @@ public class LyuWindow : Window
             case WmGetMinMaxInfo:
                 UpdateMinMaxInfo(hwnd, lParam);
                 Padding = WindowState == WindowState.Maximized ? GetWindowMaximizedPadding() : _commonPadding;
+                handled = true;
                 break;
         }
 
@@ -401,24 +402,36 @@ public class LyuWindow : Window
     {
         MINMAXINFO mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
 
-        if (IsTaskbarAutoHide())
+        IntPtr monitor = MonitorFromWindow(hwnd, MonitorDefaultToNearest);
+        if (monitor != IntPtr.Zero)
         {
-            IntPtr monitor = MonitorFromWindow(hwnd, MonitorDefaultToNearest);
-            if (monitor != IntPtr.Zero)
+            MONITORINFO monitorInfo = new()
             {
-                MONITORINFO monitorInfo = new()
-                {
-                    cbSize = Marshal.SizeOf<MONITORINFO>()
-                };
+                cbSize = Marshal.SizeOf<MONITORINFO>()
+            };
 
-                if (GetMonitorInfo(monitor, ref monitorInfo))
+            if (GetMonitorInfo(monitor, ref monitorInfo))
+            {
+                RECT workArea = monitorInfo.rcWork;
+                RECT monitorArea = monitorInfo.rcMonitor;
+                mmi.ptMaxPosition.x = workArea.left - monitorArea.left;
+                mmi.ptMaxPosition.y = workArea.top - monitorArea.top;
+                mmi.ptMaxSize.x = workArea.right - workArea.left;
+                mmi.ptMaxSize.y = workArea.bottom - workArea.top;
+
+                // Tiny horizontal correction to avoid 1px-level bleed on multi-monitor setups
+                // without introducing obvious side margins.
+                const int horizontalBleedFix = 1;
+                if (mmi.ptMaxSize.x > horizontalBleedFix * 2)
                 {
-                    RECT workArea = monitorInfo.rcWork;
-                    RECT monitorArea = monitorInfo.rcMonitor;
-                    mmi.ptMaxPosition.x = Math.Abs(workArea.left - monitorArea.left);
-                    mmi.ptMaxPosition.y = Math.Abs(workArea.top - monitorArea.top);
-                    mmi.ptMaxSize.x = Math.Abs(workArea.right - workArea.left);
-                    mmi.ptMaxSize.y = Math.Abs(workArea.bottom - workArea.top - 1);
+                    mmi.ptMaxPosition.x += horizontalBleedFix;
+                    mmi.ptMaxSize.x -= horizontalBleedFix * 2;
+                }
+
+                if (IsTaskbarAutoHide())
+                {
+                    // Keep one pixel margin so auto-hide taskbar can still be revealed.
+                    mmi.ptMaxSize.y = Math.Max(0, mmi.ptMaxSize.y - 1);
                 }
             }
         }
@@ -428,14 +441,9 @@ public class LyuWindow : Window
 
     private static Thickness GetWindowMaximizedPadding()
     {
-        Thickness resize = SystemParameters.WindowResizeBorderThickness;
-        double top = Math.Max(0, resize.Top + (IsTaskbarAutoHide() ? 0d : 4d));
-
-        return new Thickness(
-            0d,
-            top,
-            0d,
-            0d);
+        // Maximized bounds are already constrained by WM_GETMINMAXINFO.
+        // Keep content flush to screen edges to avoid visible top seam.
+        return new Thickness(0d);
     }
 
     private static bool IsTaskbarAutoHide()
