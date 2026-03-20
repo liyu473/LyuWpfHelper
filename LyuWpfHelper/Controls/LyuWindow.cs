@@ -39,6 +39,20 @@ public class LyuWindow : Window
             nameof(TitleBarContent),
             typeof(object),
             typeof(LyuWindow),
+            new PropertyMetadata(null, OnTitleBarContentChanged));
+
+    public static readonly DependencyProperty TitleBarLeftContentProperty =
+        DependencyProperty.Register(
+            nameof(TitleBarLeftContent),
+            typeof(object),
+            typeof(LyuWindow),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty TitleBarRightContentProperty =
+        DependencyProperty.Register(
+            nameof(TitleBarRightContent),
+            typeof(object),
+            typeof(LyuWindow),
             new PropertyMetadata(null));
 
     public static readonly DependencyProperty TitleBarHeightProperty =
@@ -74,7 +88,7 @@ public class LyuWindow : Window
             nameof(ShowIcon),
             typeof(bool),
             typeof(LyuWindow),
-            new PropertyMetadata(true));
+            new PropertyMetadata(false));
 
     public static readonly DependencyProperty ShowMinButtonProperty =
         DependencyProperty.Register(
@@ -261,6 +275,17 @@ public class LyuWindow : Window
         }
 
         window.ApplyWindowChrome(window.WindowState);
+    }
+
+    private static void OnTitleBarContentChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not LyuWindow window)
+        {
+            return;
+        }
+
+        // Backward compatibility: old TitleBarContent maps to the new left slot.
+        window.TitleBarLeftContent = e.NewValue;
     }
 
     private void ApplyWindowChrome(WindowState state)
@@ -467,6 +492,18 @@ public class LyuWindow : Window
     {
         get => GetValue(TitleBarContentProperty);
         set => SetValue(TitleBarContentProperty, value);
+    }
+
+    public object? TitleBarLeftContent
+    {
+        get => GetValue(TitleBarLeftContentProperty);
+        set => SetValue(TitleBarLeftContentProperty, value);
+    }
+
+    public object? TitleBarRightContent
+    {
+        get => GetValue(TitleBarRightContentProperty);
+        set => SetValue(TitleBarRightContentProperty, value);
     }
 
     public double TitleBarHeight

@@ -44,7 +44,7 @@
         <Setter Property="TitleBarForeground" Value="Black" />
         <Setter Property="TitleBarHeight" Value="29" />
         <Setter Property="TitleBarBackground" Value="#F5F5F5" />
-        <Setter Property="ShowIcon" Value="True" />
+        <Setter Property="ShowIcon" Value="False" />
         <Setter Property="ShowTitle" Value="True" />
         <Setter Property="ShowMinButton" Value="True" />
         <Setter Property="ShowMaxButton" Value="True" />
@@ -81,6 +81,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
                                 <Grid Grid.Column="0">
@@ -93,12 +94,17 @@
                                     <Button
                                         x:Name="PART_IconButton"
                                         Grid.Column="0"
-                                        Margin="10,0,0,0"
+                                        Margin="14,0,0,0"
                                         VerticalAlignment="Center"
                                         shell:WindowChrome.IsHitTestVisibleInChrome="True"
                                         Background="Transparent"
                                         BorderThickness="0"
                                         Command="{x:Static SystemCommands.ShowSystemMenuCommand}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <ContentPresenter />
+                                            </ControlTemplate>
+                                        </Button.Template>
                                         <Image
                                             Width="16"
                                             Height="16"
@@ -118,15 +124,24 @@
                                         x:Name="PART_TitleContentPresenter"
                                         Grid.Column="2"
                                         Margin="10,0,0,0"
-                                        HorizontalAlignment="Left"
+                                        HorizontalAlignment="Stretch"
                                         VerticalAlignment="Center"
                                         shell:WindowChrome.IsHitTestVisibleInChrome="True"
-                                        Content="{TemplateBinding TitleBarContent}" />
+                                        Content="{TemplateBinding TitleBarLeftContent}" />
                                 </Grid>
+
+                                <ContentPresenter
+                                    x:Name="PART_TitleRightContentPresenter"
+                                    Grid.Column="1"
+                                    Margin="0"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                                    Content="{TemplateBinding TitleBarRightContent}" />
 
                                 <StackPanel
                                     x:Name="PART_ButtonPanel"
-                                    Grid.Column="1"
+                                    Grid.Column="2"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Stretch"
                                     shell:WindowChrome.IsHitTestVisibleInChrome="True"
@@ -200,7 +215,7 @@
                             <Setter TargetName="PART_MaximizeButton" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="PART_RestoreButton" Property="Visibility" Value="Collapsed" />
                         </Trigger>
-                        <Trigger Property="ShowIcon" Value="False">
+                        <Trigger Property="Icon" Value="{x:Null}">
                             <Setter TargetName="PART_IconButton" Property="Visibility" Value="Collapsed" />
                         </Trigger>
                         <Trigger Property="ShowTitle" Value="False">
