@@ -5,6 +5,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
+		<NoWarn>$(NoWarn);SYSLIB1054</NoWarn>
 
 		<!-- NuGet 包信息 -->
 		<PackageId>LyuWpfHelper</PackageId>

@@ -11,7 +11,7 @@ namespace WpfTest;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+public partial class MainWindow : CustomTitleBarWindow
 {
     private readonly MainViewModel _vm;
     private readonly INotificationService _notificationService;
@@ -24,6 +24,16 @@ public partial class MainWindow : Window
         DataContext = _vm;
 
         _notificationService.SetOwnerWindow(this);
+    }
+
+    private void TitleBarRefreshButton_Click(object sender, RoutedEventArgs e)
+    {
+        _notificationService.Show(
+            "标题栏按钮",
+            "已点击标题栏中的自定义按钮。",
+            NotificationType.Information,
+            NotificationPosition.TopRight,
+            3);
     }
 
     private void ToggleFullScreenButton_Click(object sender, RoutedEventArgs e)
