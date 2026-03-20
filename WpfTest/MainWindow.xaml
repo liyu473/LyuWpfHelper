@@ -13,7 +13,7 @@
     lyu:LyuWindowHelper.FullScreenKey="F11"
     Icon="/Asserts/logo.ico"
     Style="{DynamicResource {x:Type lyu:LyuWindow}}"
-    TitleBarBackground="Gray"
+    TitleBarBackground="Transparent"
     TitleBarHeight="40"
     mc:Ignorable="d">
     <lyu:LyuWindow.TitleBarLeftContent>

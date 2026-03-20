@@ -21,6 +21,11 @@ public class LyuWindow : Window
     private const int WmWindowPosChanged = 0x0047;
     private const int WmNcLButtonDown = 0x00A1;
     private const int HtCaption = 0x02;
+    private const int DwmwaNcRenderingPolicy = 2;
+    private const int DwmncrpDisabled = 1;
+    private const int DwmwaWindowCornerPreference = 33;
+    private const int DwmwcpDoNotRound = 1;
+    private const int DwmwcpRound = 2;
     private const uint AbmGetState = 0x00000004;
     private const uint AbsAutoHide = 0x00000001;
     private const int MonitorDefaultToNearest = 0x00000002;
@@ -221,6 +226,8 @@ public class LyuWindow : Window
         base.OnSourceInitialized(e);
         _hwndSource = PresentationSource.FromVisual(this) as HwndSource;
         _hwndSource?.AddHook(WindowProc);
+        DisableNativeNonClientRendering();
+        ApplyRoundedCorners(WindowState);
     }
 
     protected override void OnStateChanged(EventArgs e)
@@ -228,6 +235,7 @@ public class LyuWindow : Window
         base.OnStateChanged(e);
         ApplyWindowChrome(WindowState);
         ApplyWindowStateLayout(WindowState);
+        ApplyRoundedCorners(WindowState);
     }
 
     protected override void OnClosed(EventArgs e)
@@ -438,6 +446,28 @@ public class LyuWindow : Window
 
         uint state = SHAppBarMessage(AbmGetState, ref appBarData);
         return (state & AbsAutoHide) == AbsAutoHide;
+    }
+
+    private void DisableNativeNonClientRendering()
+    {
+        if (_hwndSource is null)
+        {
+            return;
+        }
+
+        int policy = DwmncrpDisabled;
+        _ = DwmSetWindowAttribute(_hwndSource.Handle, DwmwaNcRenderingPolicy, ref policy, sizeof(int));
+    }
+
+    private void ApplyRoundedCorners(WindowState state)
+    {
+        if (_hwndSource is null)
+        {
+            return;
+        }
+
+        int preference = state == WindowState.Maximized ? DwmwcpDoNotRound : DwmwcpRound;
+        _ = DwmSetWindowAttribute(_hwndSource.Handle, DwmwaWindowCornerPreference, ref preference, sizeof(int));
     }
 
     private void ShowSystemMenu()
@@ -668,6 +698,9 @@ public class LyuWindow : Window
 
     [DllImport("shell32.dll")]
     private static extern uint SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool ReleaseCapture();
