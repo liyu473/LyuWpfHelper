@@ -131,11 +131,18 @@ namespace LyuWpfHelper.Services
                     // 强制布局更新
                     panel.UpdateLayout();
 
-                    // 获取新通知的实际高度
-                    double newNotificationHeight = notificationControl.ActualHeight > 0
-                        ? notificationControl.ActualHeight
-                        : notificationControl.DesiredSize.Height;
-                    double pushDistance = newNotificationHeight + 10; // 10 是 spacing
+                    // 获取新通知高度。快速连续添加时，ActualHeight 可能还没稳定，做一次兜底测量。
+                    double newNotificationHeight = notificationControl.ActualHeight;
+                    if (newNotificationHeight <= 0)
+                    {
+                        var measureWidth = panel.ActualWidth > 0
+                            ? panel.ActualWidth
+                            : notificationControl.MaxWidth;
+                        notificationControl.Measure(new Size(measureWidth, double.PositiveInfinity));
+                        newNotificationHeight = notificationControl.DesiredSize.Height;
+                    }
+
+                    var pushDistance = Math.Max(newNotificationHeight, 1) + panel.Spacing;
 
                     // 动画现有通知
                     if (position == NotificationPosition.TopRight || position == NotificationPosition.TopCenter)
@@ -153,7 +160,7 @@ namespace LyuWpfHelper.Services
                             var pushAnimation = new DoubleAnimation
                             {
                                 From = oldY - pushDistance,
-                                To = oldY,
+                                To = 0,
                                 Duration = TimeSpan.FromMilliseconds(300),
                                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
                             };
@@ -175,7 +182,7 @@ namespace LyuWpfHelper.Services
                             var pushAnimation = new DoubleAnimation
                             {
                                 From = oldY + pushDistance,
-                                To = oldY,
+                                To = 0,
                                 Duration = TimeSpan.FromMilliseconds(300),
                                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
                             };
