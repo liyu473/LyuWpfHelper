@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media.Animation;
 using LyuWpfHelper.Adorners;
 using LyuWpfHelper.Controls;
@@ -196,31 +197,126 @@ namespace LyuWpfHelper.Services
                     // 设置自动关闭动画
                     if (durationSeconds > 0)
                     {
-                        notificationControl.Duration = durationSeconds;
-
-                        // 使用动画平滑更新进度条
-                        var progressAnimation = new DoubleAnimation
-                        {
-                            From = 1.0,
-                            To = 0.0,
-                            Duration = TimeSpan.FromSeconds(durationSeconds),
-                        };
-
-                        progressAnimation.Completed += (s, e) =>
-                        {
-                            RemoveNotification(item, true);
-                        };
-
-                        notificationControl.BeginAnimation(
-                            NotificationControl.RemainingProgressProperty,
-                            progressAnimation
-                        );
-
-                        // 保存动画引用以便后续可以停止
-                        item.Animation = progressAnimation;
+                        ConfigureAutoClose(item, durationSeconds);
                     }
                 }
             });
+        }
+
+        private void ConfigureAutoClose(NotificationItem item, int durationSeconds)
+        {
+            item.Control.Duration = durationSeconds;
+            item.AutoCloseDuration = TimeSpan.FromSeconds(durationSeconds);
+
+            item.MouseEnterHandler = (s, e) =>
+            {
+                lock (_lock)
+                {
+                    if (item.IsClosing)
+                    {
+                        return;
+                    }
+
+                    PauseAndResetAutoCloseTimer(item);
+                }
+            };
+
+            item.MouseLeaveHandler = (s, e) =>
+            {
+                lock (_lock)
+                {
+                    if (item.IsClosing)
+                    {
+                        return;
+                    }
+
+                    RestartAutoCloseTimer(item);
+                }
+            };
+
+            item.Control.MouseEnter += item.MouseEnterHandler;
+            item.Control.MouseLeave += item.MouseLeaveHandler;
+
+            RestartAutoCloseTimer(item);
+        }
+
+        private void PauseAndResetAutoCloseTimer(NotificationItem item)
+        {
+            if (item.AutoCloseDuration <= TimeSpan.Zero)
+            {
+                return;
+            }
+
+            StopAutoCloseTimer(item, preserveCurrentProgress: false);
+            item.Control.RemainingProgress = 1.0;
+        }
+
+        private void RestartAutoCloseTimer(NotificationItem item)
+        {
+            if (item.AutoCloseDuration <= TimeSpan.Zero)
+            {
+                return;
+            }
+
+            StopAutoCloseTimer(item, preserveCurrentProgress: false);
+            item.Control.RemainingProgress = 1.0;
+
+            var progressAnimation = new DoubleAnimation
+            {
+                From = 1.0,
+                To = 0.0,
+                Duration = item.AutoCloseDuration,
+            };
+
+            progressAnimation.Completed += (s, e) =>
+            {
+                // Ignore stale completion callbacks from previously replaced timers.
+                if (!ReferenceEquals(item.Animation, progressAnimation) || item.IsClosing)
+                {
+                    return;
+                }
+
+                RemoveNotification(item, true);
+            };
+
+            item.Animation = progressAnimation;
+            item.Control.BeginAnimation(
+                NotificationControl.RemainingProgressProperty,
+                progressAnimation
+            );
+        }
+
+        private void StopAutoCloseTimer(NotificationItem item, bool preserveCurrentProgress)
+        {
+            if (item.Animation == null)
+            {
+                return;
+            }
+
+            var currentProgress = item.Control.RemainingProgress;
+            item.Control.BeginAnimation(NotificationControl.RemainingProgressProperty, null);
+
+            if (preserveCurrentProgress)
+            {
+                item.Control.RemainingProgress = currentProgress;
+            }
+
+            item.Animation = null;
+        }
+
+        private void DetachAutoCloseHandlers(NotificationItem item)
+        {
+            if (item.MouseEnterHandler != null)
+            {
+                item.Control.MouseEnter -= item.MouseEnterHandler;
+                item.MouseEnterHandler = null;
+            }
+
+            if (item.MouseLeaveHandler != null)
+            {
+                item.Control.MouseLeave -= item.MouseLeaveHandler;
+                item.MouseLeaveHandler = null;
+            }
         }
 
         private void InitializeAdornerLayer()
@@ -292,22 +388,15 @@ namespace LyuWpfHelper.Services
                 lock (_lock)
                 {
                     // 停止进度动画并保持当前值
-                    if (item.Animation != null)
+                    if (item.IsClosing)
                     {
-                        // 获取当前进度值
-                        var currentProgress = item.Control.RemainingProgress;
-
-                        // 停止动画
-                        item.Control.BeginAnimation(
-                            NotificationControl.RemainingProgressProperty,
-                            null
-                        );
-
-                        // 恢复当前值，防止跳变
-                        item.Control.RemainingProgress = currentProgress;
-
-                        item.Animation = null;
+                        return;
                     }
+
+                    item.IsClosing = true;
+
+                    DetachAutoCloseHandlers(item);
+                    StopAutoCloseTimer(item, preserveCurrentProgress: true);
 
                     var notifications = _notifications[item.Position];
                     notifications.Remove(item);
@@ -425,7 +514,11 @@ namespace LyuWpfHelper.Services
         {
             public NotificationControl Control { get; set; } = null!;
             public NotificationPosition Position { get; set; }
+            public TimeSpan AutoCloseDuration { get; set; }
             public DoubleAnimation? Animation { get; set; }
+            public MouseEventHandler? MouseEnterHandler { get; set; }
+            public MouseEventHandler? MouseLeaveHandler { get; set; }
+            public bool IsClosing { get; set; }
         }
     }
 }
