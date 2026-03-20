@@ -22,7 +22,7 @@ public class LyuWindow : Window
     private const int WmNcLButtonDown = 0x00A1;
     private const int HtCaption = 0x02;
     private const int DwmwaNcRenderingPolicy = 2;
-    private const int DwmncrpDisabled = 1;
+    private const int DwmncrpUseWindowStyle = 0;
     private const int DwmwaWindowCornerPreference = 33;
     private const int DwmwcpDoNotRound = 1;
     private const int DwmwcpRound = 2;
@@ -226,7 +226,7 @@ public class LyuWindow : Window
         base.OnSourceInitialized(e);
         _hwndSource = PresentationSource.FromVisual(this) as HwndSource;
         _hwndSource?.AddHook(WindowProc);
-        DisableNativeNonClientRendering();
+        ConfigureNativeNonClientRendering();
         ApplyRoundedCorners(WindowState);
     }
 
@@ -300,7 +300,8 @@ public class LyuWindow : Window
     {
         var chrome = WindowChrome.GetWindowChrome(this) ?? new WindowChrome();
         chrome.CornerRadius = new CornerRadius(8);
-        chrome.GlassFrameThickness = new Thickness(-1);
+        // Keep non-client rendering fully owned by WindowChrome/client area.
+        chrome.GlassFrameThickness = new Thickness(0);
         chrome.UseAeroCaptionButtons = false;
         chrome.ResizeBorderThickness = state == WindowState.Maximized ? new Thickness(0) : new Thickness(6);
         chrome.CaptionHeight = Math.Max(0, TitleBarHeight - TitleBarCaptionFix);
@@ -448,14 +449,14 @@ public class LyuWindow : Window
         return (state & AbsAutoHide) == AbsAutoHide;
     }
 
-    private void DisableNativeNonClientRendering()
+    private void ConfigureNativeNonClientRendering()
     {
         if (_hwndSource is null)
         {
             return;
         }
 
-        int policy = DwmncrpDisabled;
+        int policy = DwmncrpUseWindowStyle;
         _ = DwmSetWindowAttribute(_hwndSource.Handle, DwmwaNcRenderingPolicy, ref policy, sizeof(int));
     }
 
