@@ -11,7 +11,7 @@ namespace WpfTest;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : CustomTitleBarWindow
+public partial class MainWindow : LyuWindow
 {
     private readonly MainViewModel _vm;
     private readonly INotificationService _notificationService;

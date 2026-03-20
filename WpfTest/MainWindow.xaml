@@ -1,4 +1,4 @@
-<lyu:CustomTitleBarWindow
+<lyu:LyuWindow
     x:Class="WpfTest.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,14 +7,17 @@
     xmlns:lyu="http://schemas.lyuwpfhelper.com/winfx/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="MainWindow"
-    Width="800"
+    Width="1200"
     Height="450"
     d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
     lyu:LyuWindowHelper.FullScreenKey="F11"
-    Style="{DynamicResource {x:Type lyu:CustomTitleBarWindow}}"
-    TitleBarBackground="Transparent"
+    ShowIcon="False"
+    ShowTitle="False"
+    Style="{DynamicResource {x:Type lyu:LyuWindow}}"
+    TitleBarBackground="Gray"
+    TitleBarHeight="40"
     mc:Ignorable="d">
-    <lyu:CustomTitleBarWindow.TitleBarContent>
+    <lyu:LyuWindow.TitleBarContent>
         <DockPanel LastChildFill="False">
             <TextBlock
                 VerticalAlignment="Center"
@@ -27,7 +30,7 @@
                 Click="TitleBarRefreshButton_Click"
                 Content="刷新数据" />
         </DockPanel>
-    </lyu:CustomTitleBarWindow.TitleBarContent>
+    </lyu:LyuWindow.TitleBarContent>
 
     <Grid>
         <TabControl>
@@ -415,4 +418,4 @@
         </TabControl>
 
     </Grid>
-</lyu:CustomTitleBarWindow>
+</lyu:LyuWindow>

@@ -15,7 +15,7 @@ namespace LyuWpfHelper.Controls;
 /// <summary>
 /// HandyControl-style custom title bar window with rich non-client area customization.
 /// </summary>
-public class CustomTitleBarWindow : Window
+public class LyuWindow : Window
 {
     private const int WmGetMinMaxInfo = 0x0024;
     private const int WmWindowPosChanged = 0x0047;
@@ -38,145 +38,145 @@ public class CustomTitleBarWindow : Window
         DependencyProperty.Register(
             nameof(TitleBarContent),
             typeof(object),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(null));
 
     public static readonly DependencyProperty TitleBarHeightProperty =
         DependencyProperty.Register(
             nameof(TitleBarHeight),
             typeof(double),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(29d, OnTitleBarHeightChanged));
 
     public static readonly DependencyProperty TitleBarBackgroundProperty =
         DependencyProperty.Register(
             nameof(TitleBarBackground),
             typeof(Brush),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(Brushes.WhiteSmoke));
 
     public static readonly DependencyProperty TitleBarForegroundProperty =
         DependencyProperty.Register(
             nameof(TitleBarForeground),
             typeof(Brush),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(Brushes.Black));
 
     public static readonly DependencyProperty ShowTitleProperty =
         DependencyProperty.Register(
             nameof(ShowTitle),
             typeof(bool),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(true));
 
     public static readonly DependencyProperty ShowIconProperty =
         DependencyProperty.Register(
             nameof(ShowIcon),
             typeof(bool),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(true));
 
     public static readonly DependencyProperty ShowMinButtonProperty =
         DependencyProperty.Register(
             nameof(ShowMinButton),
             typeof(bool),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(true));
 
     public static readonly DependencyProperty ShowMaxButtonProperty =
         DependencyProperty.Register(
             nameof(ShowMaxButton),
             typeof(bool),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(true));
 
     public static readonly DependencyProperty ShowCloseButtonProperty =
         DependencyProperty.Register(
             nameof(ShowCloseButton),
             typeof(bool),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(true));
 
     public static readonly DependencyProperty TitleAlignmentProperty =
         DependencyProperty.Register(
             nameof(TitleAlignment),
             typeof(HorizontalAlignment),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(HorizontalAlignment.Left));
 
     public static readonly DependencyProperty TitleMarginProperty =
         DependencyProperty.Register(
             nameof(TitleMargin),
             typeof(Thickness),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(new Thickness(10, 0, 0, 0)));
 
     public static readonly DependencyProperty CloseButtonBackgroundProperty =
         DependencyProperty.Register(
             nameof(CloseButtonBackground),
             typeof(Brush),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(Brushes.Transparent));
 
     public static readonly DependencyProperty CloseButtonForegroundProperty =
         DependencyProperty.Register(
             nameof(CloseButtonForeground),
             typeof(Brush),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(Brushes.Black));
 
     public static readonly DependencyProperty CloseButtonHoverBackgroundProperty =
         DependencyProperty.Register(
             nameof(CloseButtonHoverBackground),
             typeof(Brush),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E81123")!)));
 
     public static readonly DependencyProperty CloseButtonHoverForegroundProperty =
         DependencyProperty.Register(
             nameof(CloseButtonHoverForeground),
             typeof(Brush),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(Brushes.White));
 
     public static readonly DependencyProperty OtherButtonBackgroundProperty =
         DependencyProperty.Register(
             nameof(OtherButtonBackground),
             typeof(Brush),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(Brushes.Transparent));
 
     public static readonly DependencyProperty OtherButtonForegroundProperty =
         DependencyProperty.Register(
             nameof(OtherButtonForeground),
             typeof(Brush),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(Brushes.Black));
 
     public static readonly DependencyProperty OtherButtonHoverBackgroundProperty =
         DependencyProperty.Register(
             nameof(OtherButtonHoverBackground),
             typeof(Brush),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E6E6E6")!)));
 
     public static readonly DependencyProperty OtherButtonHoverForegroundProperty =
         DependencyProperty.Register(
             nameof(OtherButtonHoverForeground),
             typeof(Brush),
-            typeof(CustomTitleBarWindow),
+            typeof(LyuWindow),
             new PropertyMetadata(Brushes.Black));
 
-    static CustomTitleBarWindow()
+    static LyuWindow()
     {
         DefaultStyleKeyProperty.OverrideMetadata(
-            typeof(CustomTitleBarWindow),
-            new FrameworkPropertyMetadata(typeof(CustomTitleBarWindow)));
+            typeof(LyuWindow),
+            new FrameworkPropertyMetadata(typeof(LyuWindow)));
     }
 
-    public CustomTitleBarWindow()
+    public LyuWindow()
     {
-        SetResourceReference(StyleProperty, typeof(CustomTitleBarWindow));
+        SetResourceReference(StyleProperty, typeof(LyuWindow));
         Loaded += OnLoaded;
 
         CommandBindings.Add(new CommandBinding(SystemCommands.MinimizeWindowCommand, (_, _) => SystemCommands.MinimizeWindow(this)));
@@ -250,7 +250,7 @@ public class CustomTitleBarWindow : Window
 
     private static void OnTitleBarHeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not CustomTitleBarWindow window)
+        if (d is not LyuWindow window)
         {
             return;
         }
