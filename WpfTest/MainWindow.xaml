@@ -11,8 +11,8 @@
     Height="600"
     d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
     lyu:LyuWindowHelper.FullScreenKey="F11"
+    lyu:WindowBackdropHelper.Backdrop="Tabbed"
     Icon="/Asserts/logo.ico"
-    Style="{DynamicResource {x:Type lyu:LyuWindow}}"
     TitleBarBackground="Transparent"
     TitleBarHeight="40"
     mc:Ignorable="d">

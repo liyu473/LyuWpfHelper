@@ -23,6 +23,7 @@ public class LyuWindow : Window
     private const int HtCaption = 0x02;
     private const int DwmwaNcRenderingPolicy = 2;
     private const int DwmncrpUseWindowStyle = 0;
+    private const int DwmncrpDisabled = 1;
     private const int DwmwaWindowCornerPreference = 33;
     private const int DwmwcpDoNotRound = 1;
     private const int DwmwcpRound = 2;
@@ -228,6 +229,17 @@ public class LyuWindow : Window
         _hwndSource?.AddHook(WindowProc);
         ConfigureNativeNonClientRendering();
         ApplyRoundedCorners(WindowState);
+
+        // If backdrop is enabled, remove system buttons (min/max/close) from window style
+        var backdropType = (int)GetValue(Helpers.WindowBackdropHelper.BackdropProperty);
+        if (backdropType != 0 && _hwndSource != null)
+        {
+            IntPtr hwnd = _hwndSource.Handle;
+            int style = GetWindowLong(hwnd, -16); // GWL_STYLE
+            // Remove WS_SYSMENU to hide caption buttons, but keep WS_CAPTION for animations
+            style &= ~0x00080000; // Remove WS_SYSMENU (0x00080000)
+            SetWindowLong(hwnd, -16, style);
+        }
     }
 
     protected override void OnStateChanged(EventArgs e)
@@ -300,8 +312,14 @@ public class LyuWindow : Window
     {
         var chrome = WindowChrome.GetWindowChrome(this) ?? new WindowChrome();
         chrome.CornerRadius = new CornerRadius(8);
-        // Keep non-client rendering fully owned by WindowChrome/client area.
-        chrome.GlassFrameThickness = new Thickness(0);
+
+        // Check if WindowBackdropHelper.Backdrop is set
+        var backdropType = (int)GetValue(Helpers.WindowBackdropHelper.BackdropProperty);
+
+        // If backdrop is enabled, use GlassFrameThickness = -1 to enable backdrop
+        // This will cause DWM to extend glass frame into entire client area
+        chrome.GlassFrameThickness = backdropType != 0 ? new Thickness(-1) : new Thickness(0);
+
         chrome.UseAeroCaptionButtons = false;
         chrome.ResizeBorderThickness = state == WindowState.Maximized ? new Thickness(0) : new Thickness(6);
         chrome.CaptionHeight = Math.Max(0, TitleBarHeight - TitleBarCaptionFix);
@@ -716,4 +734,10 @@ public class LyuWindow : Window
 
     [DllImport("user32.dll", CharSet = CharSet.Auto)]
     private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 }

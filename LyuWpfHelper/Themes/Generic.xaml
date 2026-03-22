@@ -161,12 +161,6 @@
                                     shell:WindowChrome.IsHitTestVisibleInChrome="True"
                                     Orientation="Horizontal"
                                     UseLayoutRounding="True">
-                                    <StackPanel.Background>
-                                        <MultiBinding Converter="{StaticResource TransparentBrushFallbackConverter}">
-                                            <Binding Path="TitleBarBackground" RelativeSource="{RelativeSource TemplatedParent}" />
-                                            <Binding Path="Background" RelativeSource="{RelativeSource TemplatedParent}" />
-                                        </MultiBinding>
-                                    </StackPanel.Background>
 
                                     <Button
                                         x:Name="PART_MinimizeButton"
