@@ -36,6 +36,32 @@ public partial class MainWindow : LyuWindow
             3);
     }
 
+    private void OpenBackdropTest_Click(object sender, RoutedEventArgs e)
+    {
+        var backdropWindow = new BackdropTestWindow();
+        backdropWindow.Show();
+    }
+
+    private void SetMainDefault_Click(object sender, RoutedEventArgs e)
+    {
+        WindowBackdropHelper.SetBackdrop(this, WindowBackdropType.Default);
+    }
+
+    private void SetMainAcrylic_Click(object sender, RoutedEventArgs e)
+    {
+        WindowBackdropHelper.SetBackdrop(this, WindowBackdropType.Acrylic);
+    }
+
+    private void SetMainMica_Click(object sender, RoutedEventArgs e)
+    {
+        WindowBackdropHelper.SetBackdrop(this, WindowBackdropType.Mica);
+    }
+
+    private void SetMainTabbed_Click(object sender, RoutedEventArgs e)
+    {
+        WindowBackdropHelper.SetBackdrop(this, WindowBackdropType.Tabbed);
+    }
+
     private void ToggleFullScreenButton_Click(object sender, RoutedEventArgs e)
     {
         LyuWindowHelper.ToggleFullScreen(this);

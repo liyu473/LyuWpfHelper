@@ -11,7 +11,7 @@ namespace LyuWpfHelper.Helpers;
 public enum WindowBackdropType
 {
     /// <summary>
-    /// Default system backdrop
+    /// Default white background (no backdrop effect)
     /// </summary>
     Default = 0,
 
@@ -103,7 +103,7 @@ public static class WindowBackdropHelper
 
         // Map enum to DWM backdrop type values
         // 0 = Auto/Default
-        // 1 = None
+        // 1 = None (white background)
         // 2 = Mica
         // 3 = Acrylic
         // 4 = Tabbed
@@ -112,7 +112,7 @@ public static class WindowBackdropHelper
             WindowBackdropType.Acrylic => 3,
             WindowBackdropType.Mica => 2,
             WindowBackdropType.Tabbed => 4,
-            _ => 0 // Default
+            _ => 1 // Default to None (white background)
         };
 
         try

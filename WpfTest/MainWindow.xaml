@@ -11,7 +11,7 @@
     Height="600"
     d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
     lyu:LyuWindowHelper.FullScreenKey="F11"
-    lyu:WindowBackdropHelper.Backdrop="Tabbed"
+    lyu:WindowBackdropHelper.Backdrop="Acrylic"
     Icon="/Asserts/logo.ico"
     TitleBarBackground="Transparent"
     TitleBarHeight="40"
@@ -28,14 +28,40 @@
                 Margin="16,0,0,0"
                 Click="TitleBarRefreshButton_Click"
                 Content="通知按钮" />
+            <Button
+                Margin="8,0,0,0"
+                Click="OpenBackdropTest_Click"
+                Content="Backdrop测试" />
         </DockPanel>
     </lyu:LyuWindow.TitleBarLeftContent>
 
     <lyu:LyuWindow.TitleBarRightContent>
-        <Button
-            Margin="16,0,8,0"
-            Click="TitleBarRefreshButton_Click"
-            Content="通知按钮" />
+        <StackPanel Orientation="Horizontal">
+            <Button
+                Width="80"
+                Height="28"
+                Margin="0,0,8,0"
+                Click="SetMainDefault_Click"
+                Content="Default" />
+            <Button
+                Width="80"
+                Height="28"
+                Margin="0,0,8,0"
+                Click="SetMainAcrylic_Click"
+                Content="Acrylic" />
+            <Button
+                Width="80"
+                Height="28"
+                Margin="0,0,8,0"
+                Click="SetMainMica_Click"
+                Content="Mica" />
+            <Button
+                Width="80"
+                Height="28"
+                Margin="0,0,8,0"
+                Click="SetMainTabbed_Click"
+                Content="Tabbed" />
+        </StackPanel>
     </lyu:LyuWindow.TitleBarRightContent>
 
     <Grid>
