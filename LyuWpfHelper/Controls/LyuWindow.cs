@@ -316,8 +316,9 @@ public class LyuWindow : Window
         // Check if WindowBackdropHelper.Backdrop is set
         var backdropType = (int)GetValue(Helpers.WindowBackdropHelper.BackdropProperty);
 
-        // If backdrop is enabled, use GlassFrameThickness = -1 to enable backdrop
+        // If backdrop is enabled (not Default), use GlassFrameThickness = -1 to enable backdrop
         // This will cause DWM to extend glass frame into entire client area
+        // For Default (0), use GlassFrameThickness = 0 for normal window with solid background
         chrome.GlassFrameThickness = backdropType != 0 ? new Thickness(-1) : new Thickness(0);
 
         chrome.UseAeroCaptionButtons = false;

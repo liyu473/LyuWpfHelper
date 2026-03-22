@@ -77,6 +77,13 @@ public static class WindowBackdropHelper
 
         var backdropType = (WindowBackdropType)e.NewValue;
 
+        // Set window background based on backdrop type
+        // For backdrop effects (Acrylic, Mica, Tabbed), use Transparent to let the effect show through
+        // For Default, use White for solid background
+        window.Background = backdropType == WindowBackdropType.Default
+            ? System.Windows.Media.Brushes.White
+            : System.Windows.Media.Brushes.Transparent;
+
         // Use SourceInitialized to ensure window handle is ready
         if (PresentationSource.FromVisual(window) != null)
         {
