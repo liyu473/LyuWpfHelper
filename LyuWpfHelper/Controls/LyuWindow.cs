@@ -8,6 +8,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Shell;
+using LyuWpfHelper.Helpers;
 
 namespace LyuWpfHelper.Controls;
 
@@ -38,6 +39,14 @@ public class LyuWindow : Window
     private Thickness _commonPadding;
     private double _normalTitleBarHeight;
     private bool _isLoadedInitialized;
+    private bool _hasThemeState;
+    private WindowThemeMode _requestedTheme = WindowThemeMode.Light;
+    private WindowThemeMode _effectiveTheme = WindowThemeMode.Light;
+
+    /// <summary>
+    /// Raised when theme is applied by <see cref="WindowThemeHelper"/>.
+    /// </summary>
+    public event EventHandler<LyuWindowThemeChangedEventArgs>? ThemeChanged;
 
     public static readonly DependencyProperty TitleBarContentProperty = DependencyProperty.Register(
         nameof(TitleBarContent),
@@ -602,6 +611,42 @@ public class LyuWindow : Window
     }
 
     private static bool AreClose(double a, double b) => Math.Abs(a - b) < 0.01d;
+
+    /// <summary>
+    /// Theme requested from external caller. Can be <see cref="WindowThemeMode.FollowSystem"/>.
+    /// </summary>
+    public WindowThemeMode RequestedTheme => _requestedTheme;
+
+    /// <summary>
+    /// Theme actually applied to this window.
+    /// </summary>
+    public WindowThemeMode EffectiveTheme => _effectiveTheme;
+
+    /// <summary>
+    /// Notifies this window that theme has changed.
+    /// </summary>
+    internal void NotifyThemeChanged(WindowThemeMode requestedTheme, WindowThemeMode effectiveTheme)
+    {
+        bool changed =
+            !_hasThemeState || _requestedTheme != requestedTheme || _effectiveTheme != effectiveTheme;
+
+        _hasThemeState = true;
+        _requestedTheme = requestedTheme;
+        _effectiveTheme = effectiveTheme;
+
+        if (changed)
+        {
+            OnThemeChanged(new LyuWindowThemeChangedEventArgs(requestedTheme, effectiveTheme));
+        }
+    }
+
+    /// <summary>
+    /// Called when theme changes. Override and call base for extension scenarios.
+    /// </summary>
+    protected virtual void OnThemeChanged(LyuWindowThemeChangedEventArgs e)
+    {
+        ThemeChanged?.Invoke(this, e);
+    }
 
     public object? TitleBarContent
     {

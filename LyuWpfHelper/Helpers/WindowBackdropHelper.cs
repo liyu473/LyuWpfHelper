@@ -37,6 +37,8 @@ public enum WindowBackdropType
 public static class WindowBackdropHelper
 {
     private const int DwmwaSystemBackdropType = 38;
+    private const int DwmwaUseImmersiveDarkMode = 20;
+    private const int DwmwaUseImmersiveDarkModeBefore20H1 = 19;
 
     [DllImport("dwmapi.dll", PreserveSig = true)]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
@@ -67,6 +69,32 @@ public static class WindowBackdropHelper
         obj.SetValue(BackdropProperty, value);
     }
 
+    /// <summary>
+    /// Sets immersive dark mode for a window so DWM backdrop/title can render dark variant.
+    /// </summary>
+    public static void SetImmersiveDarkMode(Window window, bool enabled)
+    {
+        if (window is null)
+        {
+            return;
+        }
+
+        if (PresentationSource.FromVisual(window) != null)
+        {
+            ApplyImmersiveDarkMode(window, enabled);
+        }
+        else
+        {
+            void ApplyWhenReady(object? sender, EventArgs args)
+            {
+                window.SourceInitialized -= ApplyWhenReady;
+                ApplyImmersiveDarkMode(window, enabled);
+            }
+
+            window.SourceInitialized += ApplyWhenReady;
+        }
+    }
+
     private static void OnBackdropChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not Window window)
@@ -86,15 +114,24 @@ public static class WindowBackdropHelper
         // Use SourceInitialized to ensure window handle is ready
         if (PresentationSource.FromVisual(window) != null)
         {
-            ApplyBackdrop(window, backdropType);
+            ApplyBackdropAndRefreshTheme(window, backdropType);
         }
         else
         {
             window.SourceInitialized += (s, args) =>
             {
-                ApplyBackdrop(window, backdropType);
+                ApplyBackdropAndRefreshTheme(window, backdropType);
             };
         }
+    }
+
+    private static void ApplyBackdropAndRefreshTheme(Window window, WindowBackdropType backdropType)
+    {
+        ApplyBackdrop(window, backdropType);
+
+        // Keep visual consistency: backdrop changes may overwrite background,
+        // so re-apply current window theme immediately.
+        WindowThemeHelper.ApplyTheme(window, WindowThemeHelper.GetCurrentTheme(window));
     }
 
     private static void ApplyBackdrop(Window window, WindowBackdropType backdropType)
@@ -128,6 +165,42 @@ public static class WindowBackdropHelper
         catch
         {
             // Silently fail on older Windows versions that don't support this API
+        }
+    }
+
+    private static void ApplyImmersiveDarkMode(Window window, bool enabled)
+    {
+        var helper = new WindowInteropHelper(window);
+        IntPtr hwnd = helper.Handle;
+        if (hwnd == IntPtr.Zero)
+        {
+            return;
+        }
+
+        int value = enabled ? 1 : 0;
+
+        try
+        {
+            int result = DwmSetWindowAttribute(
+                hwnd,
+                DwmwaUseImmersiveDarkMode,
+                ref value,
+                sizeof(int)
+            );
+
+            if (result != 0)
+            {
+                _ = DwmSetWindowAttribute(
+                    hwnd,
+                    DwmwaUseImmersiveDarkModeBefore20H1,
+                    ref value,
+                    sizeof(int)
+                );
+            }
+        }
+        catch
+        {
+            // Silently fail on unsupported systems.
         }
     }
 }

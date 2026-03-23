@@ -1,10 +1,11 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using iNKORE.UI.WPF.Modern;
 using LyuWpfHelper.Controls;
 using LyuWpfHelper.Helpers;
 using LyuWpfHelper.Panels;
 using LyuWpfHelper.Services;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace WpfTest;
 
@@ -33,7 +34,8 @@ public partial class MainWindow : LyuWindow
             "已点击标题栏中的自定义按钮。",
             NotificationType.Information,
             NotificationPosition.TopRight,
-            3);
+            3
+        );
     }
 
     private void OpenBackdropTest_Click(object sender, RoutedEventArgs e)
@@ -70,85 +72,181 @@ public partial class MainWindow : LyuWindow
     // 右上角通知
     private void ShowTopRightInfo_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("信息", "这是一条信息通知", NotificationType.Information, NotificationPosition.TopRight, 3);
+        _notificationService.Show(
+            "信息",
+            "这是一条信息通知",
+            NotificationType.Information,
+            NotificationPosition.TopRight,
+            3
+        );
     }
 
     private void ShowTopRightSuccess_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("成功", "操作已成功完成", NotificationType.Success, NotificationPosition.TopRight, 3);
+        _notificationService.Show(
+            "成功",
+            "操作已成功完成",
+            NotificationType.Success,
+            NotificationPosition.TopRight,
+            3
+        );
     }
 
     private void ShowTopRightWarning_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("警告", "请注意磁盘空间不足", NotificationType.Warning, NotificationPosition.TopRight, 0);
+        _notificationService.Show(
+            "警告",
+            "请注意磁盘空间不足",
+            NotificationType.Warning,
+            NotificationPosition.TopRight,
+            0
+        );
     }
 
     private void ShowTopRightError_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("错误", "无法连接到服务器", NotificationType.Error, NotificationPosition.TopRight, 10);
+        _notificationService.Show(
+            "错误",
+            "无法连接到服务器",
+            NotificationType.Error,
+            NotificationPosition.TopRight,
+            10
+        );
     }
 
     // 右下角通知
     private void ShowBottomRightInfo_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("信息", "这是一条信息通知", NotificationType.Information, NotificationPosition.BottomRight, 3);
+        _notificationService.Show(
+            "信息",
+            "这是一条信息通知",
+            NotificationType.Information,
+            NotificationPosition.BottomRight,
+            3
+        );
     }
 
     private void ShowBottomRightSuccess_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("成功", "文件保存成功", NotificationType.Success, NotificationPosition.BottomRight, 3);
+        _notificationService.Show(
+            "成功",
+            "文件保存成功",
+            NotificationType.Success,
+            NotificationPosition.BottomRight,
+            3
+        );
     }
 
     private void ShowBottomRightWarning_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("警告", "网络连接不稳定", NotificationType.Warning, NotificationPosition.BottomRight, 5);
+        _notificationService.Show(
+            "警告",
+            "网络连接不稳定",
+            NotificationType.Warning,
+            NotificationPosition.BottomRight,
+            5
+        );
     }
 
     private void ShowBottomRightError_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("错误", "数据加载失败", NotificationType.Error, NotificationPosition.BottomRight, 10);
+        _notificationService.Show(
+            "错误",
+            "数据加载失败",
+            NotificationType.Error,
+            NotificationPosition.BottomRight,
+            10
+        );
     }
 
     // 中上通知
     private void ShowTopCenterInfo_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("信息", "这是一条信息通知", NotificationType.Information, NotificationPosition.TopCenter, 3);
+        _notificationService.Show(
+            "信息",
+            "这是一条信息通知",
+            NotificationType.Information,
+            NotificationPosition.TopCenter,
+            3
+        );
     }
 
     private void ShowTopCenterSuccess_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("成功", "更新已安装", NotificationType.Success, NotificationPosition.TopCenter, 3);
+        _notificationService.Show(
+            "成功",
+            "更新已安装",
+            NotificationType.Success,
+            NotificationPosition.TopCenter,
+            3
+        );
     }
 
     private void ShowTopCenterWarning_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("警告", "即将进行系统维护", NotificationType.Warning, NotificationPosition.TopCenter, 5);
+        _notificationService.Show(
+            "警告",
+            "即将进行系统维护",
+            NotificationType.Warning,
+            NotificationPosition.TopCenter,
+            5
+        );
     }
 
     private void ShowTopCenterError_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("错误", "认证失败，请重新登录", NotificationType.Error, NotificationPosition.TopCenter, 10);
+        _notificationService.Show(
+            "错误",
+            "认证失败，请重新登录",
+            NotificationType.Error,
+            NotificationPosition.TopCenter,
+            10
+        );
     }
 
     // 中下通知
     private void ShowBottomCenterInfo_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("信息", "这是一条信息通知", NotificationType.Information, NotificationPosition.BottomCenter, 3);
+        _notificationService.Show(
+            "信息",
+            "这是一条信息通知",
+            NotificationType.Information,
+            NotificationPosition.BottomCenter,
+            3
+        );
     }
 
     private void ShowBottomCenterSuccess_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("成功", "同步完成", NotificationType.Success, NotificationPosition.BottomCenter, 3);
+        _notificationService.Show(
+            "成功",
+            "同步完成",
+            NotificationType.Success,
+            NotificationPosition.BottomCenter,
+            3
+        );
     }
 
     private void ShowBottomCenterWarning_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("警告", "电池电量低", NotificationType.Warning, NotificationPosition.BottomCenter, 5);
+        _notificationService.Show(
+            "警告",
+            "电池电量低",
+            NotificationType.Warning,
+            NotificationPosition.BottomCenter,
+            5
+        );
     }
 
     private void ShowBottomCenterError_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("错误", "打印机离线", NotificationType.Error, NotificationPosition.BottomCenter, 10);
+        _notificationService.Show(
+            "错误",
+            "打印机离线",
+            NotificationType.Error,
+            NotificationPosition.BottomCenter,
+            10
+        );
     }
 
     // 批量测试
@@ -161,18 +259,48 @@ public partial class MainWindow : LyuWindow
                 0 => NotificationType.Error,
                 1 => NotificationType.Information,
                 2 => NotificationType.Success,
-                _ => NotificationType.Warning
+                _ => NotificationType.Warning,
             };
-            _notificationService.Show($"通知 {i}", $"这是第 {i} 条通知，测试最多显示5个", type, NotificationPosition.TopRight, 5);
+            _notificationService.Show(
+                $"通知 {i}",
+                $"这是第 {i} 条通知，测试最多显示5个",
+                type,
+                NotificationPosition.TopRight,
+                5
+            );
         }
     }
 
     private void ShowAllPositions_Click(object sender, RoutedEventArgs e)
     {
-        _notificationService.Show("右上", "右上角通知", NotificationType.Information, NotificationPosition.TopRight, 5);
-        _notificationService.Show("右下", "右下角通知", NotificationType.Success, NotificationPosition.BottomRight, 5);
-        _notificationService.Show("中上", "中上通知", NotificationType.Warning, NotificationPosition.TopCenter, 5);
-        _notificationService.Show("中下", "中下通知", NotificationType.Error, NotificationPosition.BottomCenter, 5);
+        _notificationService.Show(
+            "右上",
+            "右上角通知",
+            NotificationType.Information,
+            NotificationPosition.TopRight,
+            5
+        );
+        _notificationService.Show(
+            "右下",
+            "右下角通知",
+            NotificationType.Success,
+            NotificationPosition.BottomRight,
+            5
+        );
+        _notificationService.Show(
+            "中上",
+            "中上通知",
+            NotificationType.Warning,
+            NotificationPosition.TopCenter,
+            5
+        );
+        _notificationService.Show(
+            "中下",
+            "中下通知",
+            NotificationType.Error,
+            NotificationPosition.BottomCenter,
+            5
+        );
     }
 
     // TransitioningContentControl 测试
@@ -197,7 +325,9 @@ public partial class MainWindow : LyuWindow
                 {
                     Padding = new Thickness(40, 30, 40, 30),
                     Background = Brushes.White,
-                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4CAF50")!),
+                    BorderBrush = new SolidColorBrush(
+                        (Color)ColorConverter.ConvertFromString("#4CAF50")!
+                    ),
                     BorderThickness = new Thickness(2),
                     CornerRadius = new CornerRadius(8),
                     Child = new SimpleStackPanel
@@ -211,22 +341,28 @@ public partial class MainWindow : LyuWindow
                                 Text = "内容 1",
                                 FontSize = 24,
                                 FontWeight = FontWeights.Bold,
-                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4CAF50")!)
+                                Foreground = new SolidColorBrush(
+                                    (Color)ColorConverter.ConvertFromString("#4CAF50")!
+                                ),
                             },
                             new TextBlock
                             {
                                 Text = "这是第一个内容",
                                 FontSize = 14,
-                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#757575")!)
-                            }
-                        }
-                    }
+                                Foreground = new SolidColorBrush(
+                                    (Color)ColorConverter.ConvertFromString("#757575")!
+                                ),
+                            },
+                        },
+                    },
                 },
                 "2" => new Border
                 {
                     Padding = new Thickness(40, 30, 40, 30),
                     Background = Brushes.White,
-                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF9800")!),
+                    BorderBrush = new SolidColorBrush(
+                        (Color)ColorConverter.ConvertFromString("#FF9800")!
+                    ),
                     BorderThickness = new Thickness(2),
                     CornerRadius = new CornerRadius(8),
                     Child = new SimpleStackPanel
@@ -240,22 +376,28 @@ public partial class MainWindow : LyuWindow
                                 Text = "内容 2",
                                 FontSize = 24,
                                 FontWeight = FontWeights.Bold,
-                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF9800")!)
+                                Foreground = new SolidColorBrush(
+                                    (Color)ColorConverter.ConvertFromString("#FF9800")!
+                                ),
                             },
                             new TextBlock
                             {
                                 Text = "这是第二个内容",
                                 FontSize = 14,
-                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#757575")!)
-                            }
-                        }
-                    }
+                                Foreground = new SolidColorBrush(
+                                    (Color)ColorConverter.ConvertFromString("#757575")!
+                                ),
+                            },
+                        },
+                    },
                 },
                 "3" => new Border
                 {
                     Padding = new Thickness(40, 30, 40, 30),
                     Background = Brushes.White,
-                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F44336")!),
+                    BorderBrush = new SolidColorBrush(
+                        (Color)ColorConverter.ConvertFromString("#F44336")!
+                    ),
                     BorderThickness = new Thickness(2),
                     CornerRadius = new CornerRadius(8),
                     Child = new SimpleStackPanel
@@ -269,21 +411,55 @@ public partial class MainWindow : LyuWindow
                                 Text = "内容 3",
                                 FontSize = 24,
                                 FontWeight = FontWeights.Bold,
-                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F44336")!)
+                                Foreground = new SolidColorBrush(
+                                    (Color)ColorConverter.ConvertFromString("#F44336")!
+                                ),
                             },
                             new TextBlock
                             {
                                 Text = "这是第三个内容",
                                 FontSize = 14,
-                                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#757575")!)
-                            }
-                        }
-                    }
+                                Foreground = new SolidColorBrush(
+                                    (Color)ColorConverter.ConvertFromString("#757575")!
+                                ),
+                            },
+                        },
+                    },
                 },
-                _ => throw new ArgumentException("Invalid content number")
+                _ => throw new ArgumentException("Invalid content number"),
             };
 
             TransitionControl.Content = newContent;
         }
+    }
+
+    private void MainThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (
+            sender is not ComboBox comboBox
+            || comboBox.SelectedItem is not ComboBoxItem selectedItem
+        )
+        {
+            return;
+        }
+
+        if (selectedItem.Tag is not string themeTag)
+        {
+            return;
+        }
+
+        if (Enum.TryParse(themeTag, true, out WindowThemeMode themeMode))
+        {
+            WindowThemeHelper.ApplyTheme(this, themeMode);
+        }
+    }
+
+    protected override void OnThemeChanged(LyuWindowThemeChangedEventArgs e)
+    {
+        base.OnThemeChanged(e);
+        var elementTheme =
+            e.EffectiveTheme == WindowThemeMode.Dark ? ElementTheme.Dark : ElementTheme.Light;
+
+        ThemeManager.SetRequestedTheme(this, elementTheme);
     }
 }

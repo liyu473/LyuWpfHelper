@@ -1,4 +1,5 @@
 ﻿using LyuWpfHelper.Extensions;
+using iNKORE.UI.WPF.Modern;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Windows;
@@ -31,6 +32,9 @@ namespace WpfTest
 
         protected override async void OnStartup(StartupEventArgs e)
         {
+            // 在创建任何窗口之前初始化 iNKORE 主题
+            ThemeManager.Current.ApplicationTheme = ApplicationTheme.Light;
+
             await _host.StartAsync();
 
             var mainWindow = _host.Services.GetRequiredService<MainWindow>();

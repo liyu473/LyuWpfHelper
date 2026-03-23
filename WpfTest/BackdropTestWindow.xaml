@@ -5,10 +5,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:lyu="http://schemas.lyuwpfhelper.com/winfx/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
     Title="Backdrop 测试窗口"
     Width="800"
     Height="600"
     lyu:WindowBackdropHelper.Backdrop="Acrylic"
+    ui:WindowHelper.UseModernWindowStyle="True"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -34,9 +36,21 @@
                     Margin="16,0,0,0"
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="主题" />
+                    <ComboBox
+                        x:Name="BackdropThemeComboBox"
+                        Width="100"
+                        Margin="8,0,0,0"
+                        SelectedIndex="0"
+                        SelectionChanged="BackdropThemeComboBox_SelectionChanged">
+                        <ComboBoxItem Tag="Light">浅色</ComboBoxItem>
+                        <ComboBoxItem Tag="Dark">深色</ComboBoxItem>
+                        <ComboBoxItem Tag="FollowSystem">跟随系统</ComboBoxItem>
+                    </ComboBox>
                     <Button
                         Width="100"
                         Height="28"
+                        Margin="8,0,0,0"
                         Click="SetDefault_Click"
                         Content="Default" />
                     <Button
@@ -88,8 +102,6 @@
                 <Border
                     Margin="0,40,0,0"
                     Padding="20"
-                    Background="White"
-                    BorderBrush="#E0E0E0"
                     BorderThickness="1"
                     CornerRadius="8">
                     <StackPanel Orientation="Vertical">
