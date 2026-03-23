@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using LyuWpfHelper.Controls;
 using Microsoft.Win32;
 
@@ -23,6 +24,17 @@ public enum WindowThemeMode
 /// </summary>
 public static class WindowThemeHelper
 {
+    private static readonly Duration DefaultThemeTransitionDuration = new(TimeSpan.FromMilliseconds(220));
+
+    private const string LightWindowBackgroundBrushKey = "LyuWindowTheme.Light.WindowBackgroundBrush";
+    private const string DarkWindowBackgroundBrushKey = "LyuWindowTheme.Dark.WindowBackgroundBrush";
+    private const string LightBorderBrushKey = "LyuWindowTheme.Light.BorderBrush";
+    private const string DarkBorderBrushKey = "LyuWindowTheme.Dark.BorderBrush";
+    private const string LightTitleBarBackgroundBrushKey =
+        "LyuWindowTheme.Light.TitleBarBackgroundBrush";
+    private const string DarkTitleBarBackgroundBrushKey =
+        "LyuWindowTheme.Dark.TitleBarBackgroundBrush";
+
     private static readonly object SyncLock = new();
     private static readonly List<WeakReference<Window>> FollowSystemWindows = [];
     private static readonly DependencyProperty CurrentThemeProperty =
@@ -43,14 +55,14 @@ public static class WindowThemeHelper
     private static readonly Brush LightWindowBackground = CreateBrush("#FFFFFFFF");
     private static readonly Brush LightWindowForeground = CreateBrush("#FF1F1F1F");
     private static readonly Brush LightBorderBrush = CreateBrush("#FFD6D6D6");
-    private static readonly Brush LightTitleBarBackground = CreateBrush("#FFF5F5F5");
+    private static readonly Brush LightTitleBarBackground = CreateBrush("#FFFFFFFF");
     private static readonly Brush LightTitleBarForeground = CreateBrush("#FF000000");
     private static readonly Brush LightOtherButtonHoverBackground = CreateBrush("#FFE6E6E6");
 
     private static readonly Brush DarkWindowBackground = CreateBrush("#FF202020");
     private static readonly Brush DarkWindowForeground = CreateBrush("#FFF3F3F3");
     private static readonly Brush DarkBorderBrush = CreateBrush("#FF404040");
-    private static readonly Brush DarkTitleBarBackground = CreateBrush("#FF2B2B2B");
+    private static readonly Brush DarkTitleBarBackground = CreateBrush("#FF202020");
     private static readonly Brush DarkTitleBarForeground = CreateBrush("#FFF3F3F3");
     private static readonly Brush DarkOtherButtonHoverBackground = CreateBrush("#FF3A3A3A");
 
@@ -138,13 +150,46 @@ public static class WindowThemeHelper
     private static void ApplyLyuWindowTheme(LyuWindow window, WindowThemeMode theme)
     {
         bool hasBackdrop = WindowBackdropHelper.GetBackdrop(window) != WindowBackdropType.Default;
+        bool animate = !hasBackdrop;
+        Brush lightBackground = ResolveThemeBrush(
+            window,
+            LightWindowBackgroundBrushKey,
+            LightWindowBackground
+        );
+        Brush darkBackground = ResolveThemeBrush(
+            window,
+            DarkWindowBackgroundBrushKey,
+            DarkWindowBackground
+        );
+        Brush lightBorder = ResolveThemeBrush(window, LightBorderBrushKey, LightBorderBrush);
+        Brush darkBorder = ResolveThemeBrush(window, DarkBorderBrushKey, DarkBorderBrush);
+        Brush lightTitleBarBackground = ResolveThemeBrush(
+            window,
+            LightTitleBarBackgroundBrushKey,
+            LightTitleBarBackground
+        );
+        Brush darkTitleBarBackground = ResolveThemeBrush(
+            window,
+            DarkTitleBarBackgroundBrushKey,
+            DarkTitleBarBackground
+        );
 
         if (theme == WindowThemeMode.Dark)
         {
-            window.Background = hasBackdrop ? TransparentBrush : DarkWindowBackground;
+            ApplyBrushWithTransition(
+                window,
+                Window.BackgroundProperty,
+                hasBackdrop ? TransparentBrush : darkBackground,
+                animate
+            );
             window.Foreground = DarkWindowForeground;
-            window.BorderBrush = DarkBorderBrush;
-            window.TitleBarBackground = hasBackdrop ? TransparentBrush : DarkWindowBackground;
+            ApplyBrushWithTransition(window, Window.BorderBrushProperty, darkBorder, animate);
+            ApplyBrushWithTransition(
+                window,
+                LyuWindow.TitleBarBackgroundProperty,
+                hasBackdrop ? TransparentBrush : darkTitleBarBackground,
+                animate
+            );
             window.TitleBarForeground = DarkTitleBarForeground;
             window.OtherButtonBackground = TransparentBrush;
             window.OtherButtonForeground = DarkTitleBarForeground;
@@ -157,10 +202,20 @@ public static class WindowThemeHelper
             return;
         }
 
-        window.Background = hasBackdrop ? TransparentBrush : LightWindowBackground;
+        ApplyBrushWithTransition(
+            window,
+            Window.BackgroundProperty,
+            hasBackdrop ? TransparentBrush : lightBackground,
+            animate
+        );
         window.Foreground = LightWindowForeground;
-        window.BorderBrush = LightBorderBrush;
-        window.TitleBarBackground = hasBackdrop ? TransparentBrush : LightWindowBackground;
+        ApplyBrushWithTransition(window, Window.BorderBrushProperty, lightBorder, animate);
+        ApplyBrushWithTransition(
+            window,
+            LyuWindow.TitleBarBackgroundProperty,
+            hasBackdrop ? TransparentBrush : lightTitleBarBackground,
+            animate
+        );
         window.TitleBarForeground = LightTitleBarForeground;
         window.OtherButtonBackground = TransparentBrush;
         window.OtherButtonForeground = LightTitleBarForeground;
@@ -175,18 +230,41 @@ public static class WindowThemeHelper
     private static void ApplyNormalWindowTheme(Window window, WindowThemeMode theme)
     {
         bool hasBackdrop = WindowBackdropHelper.GetBackdrop(window) != WindowBackdropType.Default;
+        bool animate = !hasBackdrop;
+        Brush lightBackground = ResolveThemeBrush(
+            window,
+            LightWindowBackgroundBrushKey,
+            LightWindowBackground
+        );
+        Brush darkBackground = ResolveThemeBrush(
+            window,
+            DarkWindowBackgroundBrushKey,
+            DarkWindowBackground
+        );
+        Brush lightBorder = ResolveThemeBrush(window, LightBorderBrushKey, LightBorderBrush);
+        Brush darkBorder = ResolveThemeBrush(window, DarkBorderBrushKey, DarkBorderBrush);
 
         if (theme == WindowThemeMode.Dark)
         {
-            window.Background = hasBackdrop ? TransparentBrush : DarkWindowBackground;
+            ApplyBrushWithTransition(
+                window,
+                Window.BackgroundProperty,
+                hasBackdrop ? TransparentBrush : darkBackground,
+                animate
+            );
             window.Foreground = DarkWindowForeground;
-            window.BorderBrush = DarkBorderBrush;
+            ApplyBrushWithTransition(window, Window.BorderBrushProperty, darkBorder, animate);
             return;
         }
 
-        window.Background = hasBackdrop ? TransparentBrush : LightWindowBackground;
+        ApplyBrushWithTransition(
+            window,
+            Window.BackgroundProperty,
+            hasBackdrop ? TransparentBrush : lightBackground,
+            animate
+        );
         window.Foreground = LightWindowForeground;
-        window.BorderBrush = LightBorderBrush;
+        ApplyBrushWithTransition(window, Window.BorderBrushProperty, lightBorder, animate);
     }
 
     private static Brush CreateBrush(string hex)
@@ -194,6 +272,71 @@ public static class WindowThemeHelper
         var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)!);
         brush.Freeze();
         return brush;
+    }
+
+    private static Brush ResolveThemeBrush(Window window, string key, Brush fallback)
+    {
+        if (window.TryFindResource(key) is Brush windowBrush)
+        {
+            return windowBrush;
+        }
+
+        if (Application.Current?.TryFindResource(key) is Brush appBrush)
+        {
+            return appBrush;
+        }
+
+        return fallback;
+    }
+
+    private static void ApplyBrushWithTransition(
+        Window window,
+        DependencyProperty property,
+        Brush targetBrush,
+        bool animate
+    )
+    {
+        if (!animate)
+        {
+            window.SetValue(property, targetBrush);
+            return;
+        }
+
+        if (targetBrush is not SolidColorBrush targetSolid)
+        {
+            window.SetValue(property, targetBrush);
+            return;
+        }
+
+        Brush? currentBrush = window.GetValue(property) as Brush;
+        Color startColor =
+            currentBrush is SolidColorBrush currentSolid
+                ? currentSolid.Color
+                : Color.FromArgb(0, targetSolid.Color.R, targetSolid.Color.G, targetSolid.Color.B);
+
+        if (startColor == targetSolid.Color)
+        {
+            window.SetValue(property, targetBrush);
+            return;
+        }
+
+        var animatedBrush = new SolidColorBrush(startColor);
+        window.SetValue(property, animatedBrush);
+
+        var animation = new ColorAnimation
+        {
+            To = targetSolid.Color,
+            Duration = DefaultThemeTransitionDuration,
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+            FillBehavior = FillBehavior.HoldEnd,
+        };
+
+        animation.Completed += (_, _) => window.SetValue(property, targetBrush);
+        animatedBrush.BeginAnimation(
+            SolidColorBrush.ColorProperty,
+            animation,
+            HandoffBehavior.SnapshotAndReplace
+        );
     }
 
     private static bool IsSystemDarkTheme()

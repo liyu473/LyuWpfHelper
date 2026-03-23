@@ -11,6 +11,18 @@
 
     <converters:TransparentBrushFallbackConverter x:Key="TransparentBrushFallbackConverter" />
 
+    <!-- Theme tokens for WindowThemeHelper (can be overridden by app resources) -->
+    <SolidColorBrush x:Key="LyuWindowTheme.Light.WindowBackgroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="LyuWindowTheme.Dark.WindowBackgroundBrush" Color="#FF202020" />
+    <SolidColorBrush x:Key="LyuWindowTheme.Light.BorderBrush" Color="#FFD6D6D6" />
+    <SolidColorBrush x:Key="LyuWindowTheme.Dark.BorderBrush" Color="#FF404040" />
+    <SolidColorBrush
+        x:Key="LyuWindowTheme.Light.TitleBarBackgroundBrush"
+        Color="#FFFFFFFF" />
+    <SolidColorBrush
+        x:Key="LyuWindowTheme.Dark.TitleBarBackgroundBrush"
+        Color="#FF202020" />
+
     <Style x:Key="LyuTitleBarButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="Width" Value="46" />
         <Setter Property="Height" Value="{Binding TitleBarHeight, RelativeSource={RelativeSource AncestorType={x:Type controls:LyuWindow}}}" />
