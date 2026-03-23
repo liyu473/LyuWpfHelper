@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:LyuWpfHelper.Converters"
     xmlns:controls="clr-namespace:LyuWpfHelper.Controls"
+    xmlns:helpers="clr-namespace:LyuWpfHelper.Helpers"
     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework">
 
     <ResourceDictionary.MergedDictionaries>
@@ -22,6 +23,85 @@
     <SolidColorBrush
         x:Key="LyuWindowTheme.Dark.TitleBarBackgroundBrush"
         Color="#FF202020" />
+
+    <!-- Notification theme tokens (can be overridden by app resources) -->
+    <SolidColorBrush x:Key="LyuNotification.Light.TitleBrush" Color="#FF212121" />
+    <SolidColorBrush x:Key="LyuNotification.Dark.TitleBrush" Color="#FFF3F3F3" />
+    <SolidColorBrush x:Key="LyuNotification.Light.MessageBrush" Color="#FF6A6A6A" />
+    <SolidColorBrush x:Key="LyuNotification.Dark.MessageBrush" Color="#FFD0D0D0" />
+    <SolidColorBrush x:Key="LyuNotification.Light.CloseIconBrush" Color="#FF9A9A9A" />
+    <SolidColorBrush x:Key="LyuNotification.Dark.CloseIconBrush" Color="#FFCFCFCF" />
+    <SolidColorBrush x:Key="LyuNotification.Light.CloseHoverBackgroundBrush" Color="#14000000" />
+    <SolidColorBrush x:Key="LyuNotification.Dark.CloseHoverBackgroundBrush" Color="#22FFFFFF" />
+    <SolidColorBrush x:Key="LyuNotification.Light.BorderBrush" Color="#14000000" />
+    <SolidColorBrush x:Key="LyuNotification.Dark.BorderBrush" Color="#30FFFFFF" />
+
+    <LinearGradientBrush
+        x:Key="LyuNotification.Light.InformationBackgroundBrush"
+        StartPoint="0,0.5"
+        EndPoint="1,0.5">
+        <GradientStop Offset="0" Color="#E3F2FD" />
+        <GradientStop Offset="0.3" Color="#FFFFFFFF" />
+    </LinearGradientBrush>
+    <LinearGradientBrush
+        x:Key="LyuNotification.Light.SuccessBackgroundBrush"
+        StartPoint="0,0.5"
+        EndPoint="1,0.5">
+        <GradientStop Offset="0" Color="#E8F5E9" />
+        <GradientStop Offset="0.3" Color="#FFFFFFFF" />
+    </LinearGradientBrush>
+    <LinearGradientBrush
+        x:Key="LyuNotification.Light.WarningBackgroundBrush"
+        StartPoint="0,0.5"
+        EndPoint="1,0.5">
+        <GradientStop Offset="0" Color="#FFF3E0" />
+        <GradientStop Offset="0.3" Color="#FFFFFFFF" />
+    </LinearGradientBrush>
+    <LinearGradientBrush
+        x:Key="LyuNotification.Light.ErrorBackgroundBrush"
+        StartPoint="0,0.5"
+        EndPoint="1,0.5">
+        <GradientStop Offset="0" Color="#FFEBEE" />
+        <GradientStop Offset="0.3" Color="#FFFFFFFF" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush
+        x:Key="LyuNotification.Dark.InformationBackgroundBrush"
+        StartPoint="0,0.5"
+        EndPoint="1,0.5">
+        <GradientStop Offset="0" Color="#202196F3" />
+        <GradientStop Offset="0.38" Color="#FF242424" />
+    </LinearGradientBrush>
+    <LinearGradientBrush
+        x:Key="LyuNotification.Dark.SuccessBackgroundBrush"
+        StartPoint="0,0.5"
+        EndPoint="1,0.5">
+        <GradientStop Offset="0" Color="#204CAF50" />
+        <GradientStop Offset="0.38" Color="#FF242424" />
+    </LinearGradientBrush>
+    <LinearGradientBrush
+        x:Key="LyuNotification.Dark.WarningBackgroundBrush"
+        StartPoint="0,0.5"
+        EndPoint="1,0.5">
+        <GradientStop Offset="0" Color="#20FF9800" />
+        <GradientStop Offset="0.38" Color="#FF242424" />
+    </LinearGradientBrush>
+    <LinearGradientBrush
+        x:Key="LyuNotification.Dark.ErrorBackgroundBrush"
+        StartPoint="0,0.5"
+        EndPoint="1,0.5">
+        <GradientStop Offset="0" Color="#20F44336" />
+        <GradientStop Offset="0.38" Color="#FF242424" />
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="LyuNotification.Light.InformationIconBackgroundBrush" Color="#262196F3" />
+    <SolidColorBrush x:Key="LyuNotification.Light.SuccessIconBackgroundBrush" Color="#264CAF50" />
+    <SolidColorBrush x:Key="LyuNotification.Light.WarningIconBackgroundBrush" Color="#26FF9800" />
+    <SolidColorBrush x:Key="LyuNotification.Light.ErrorIconBackgroundBrush" Color="#26F44336" />
+    <SolidColorBrush x:Key="LyuNotification.Dark.InformationIconBackgroundBrush" Color="#332196F3" />
+    <SolidColorBrush x:Key="LyuNotification.Dark.SuccessIconBackgroundBrush" Color="#334CAF50" />
+    <SolidColorBrush x:Key="LyuNotification.Dark.WarningIconBackgroundBrush" Color="#33FF9800" />
+    <SolidColorBrush x:Key="LyuNotification.Dark.ErrorIconBackgroundBrush" Color="#33F44336" />
 
     <Style x:Key="LyuTitleBarButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="Width" Value="46" />
@@ -332,45 +412,46 @@
                         </Border.RenderTransform>
                         <Border.Style>
                             <Style TargetType="Border">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                                            <GradientStop Offset="0" Color="#E3F2FD" />
-                                            <GradientStop Offset="0.3" Color="White" />
-                                        </LinearGradientBrush>
-                                    </Setter.Value>
-                                </Setter>
+                                <Setter Property="Background" Value="{DynamicResource LyuNotification.Light.InformationBackgroundBrush}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource LyuNotification.Light.BorderBrush}" />
+                                <Setter Property="BorderThickness" Value="1" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Success">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                                                    <GradientStop Offset="0" Color="#E8F5E9" />
-                                                    <GradientStop Offset="0.3" Color="White" />
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
+                                        <Setter Property="Background" Value="{DynamicResource LyuNotification.Light.SuccessBackgroundBrush}" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Warning">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                                                    <GradientStop Offset="0" Color="#FFF3E0" />
-                                                    <GradientStop Offset="0.3" Color="White" />
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
+                                        <Setter Property="Background" Value="{DynamicResource LyuNotification.Light.WarningBackgroundBrush}" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Error">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                                                    <GradientStop Offset="0" Color="#FFEBEE" />
-                                                    <GradientStop Offset="0.3" Color="White" />
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
+                                        <Setter Property="Background" Value="{DynamicResource LyuNotification.Light.ErrorBackgroundBrush}" />
                                     </DataTrigger>
+                                    <DataTrigger
+                                        Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                        Value="{x:Static helpers:WindowThemeMode.Dark}">
+                                        <Setter Property="Background" Value="{DynamicResource LyuNotification.Dark.InformationBackgroundBrush}" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource LyuNotification.Dark.BorderBrush}" />
+                                    </DataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="{x:Static helpers:WindowThemeMode.Dark}" />
+                                            <Condition Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Success" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="{DynamicResource LyuNotification.Dark.SuccessBackgroundBrush}" />
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="{x:Static helpers:WindowThemeMode.Dark}" />
+                                            <Condition Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Warning" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="{DynamicResource LyuNotification.Dark.WarningBackgroundBrush}" />
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="{x:Static helpers:WindowThemeMode.Dark}" />
+                                            <Condition Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Error" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="{DynamicResource LyuNotification.Dark.ErrorBackgroundBrush}" />
+                                    </MultiDataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
@@ -430,22 +511,48 @@
                                     <Border.RenderTransform>
                                         <ScaleTransform x:Name="PART_IconScale" CenterX="24" CenterY="24" ScaleX="1" ScaleY="1" />
                                     </Border.RenderTransform>
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#262196F3" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Success">
-                                                    <Setter Property="Background" Value="#264CAF50" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Warning">
-                                                    <Setter Property="Background" Value="#26FF9800" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Error">
-                                                    <Setter Property="Background" Value="#26F44336" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="{DynamicResource LyuNotification.Light.InformationIconBackgroundBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Success">
+                                                <Setter Property="Background" Value="{DynamicResource LyuNotification.Light.SuccessIconBackgroundBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Warning">
+                                                <Setter Property="Background" Value="{DynamicResource LyuNotification.Light.WarningIconBackgroundBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Error">
+                                                <Setter Property="Background" Value="{DynamicResource LyuNotification.Light.ErrorIconBackgroundBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger
+                                                Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                Value="{x:Static helpers:WindowThemeMode.Dark}">
+                                                <Setter Property="Background" Value="{DynamicResource LyuNotification.Dark.InformationIconBackgroundBrush}" />
+                                            </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="{x:Static helpers:WindowThemeMode.Dark}" />
+                                                    <Condition Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Success" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="{DynamicResource LyuNotification.Dark.SuccessIconBackgroundBrush}" />
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="{x:Static helpers:WindowThemeMode.Dark}" />
+                                                    <Condition Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Warning" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="{DynamicResource LyuNotification.Dark.WarningIconBackgroundBrush}" />
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="{x:Static helpers:WindowThemeMode.Dark}" />
+                                                    <Condition Binding="{Binding NotificationType, RelativeSource={RelativeSource TemplatedParent}}" Value="Error" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background" Value="{DynamicResource LyuNotification.Dark.ErrorIconBackgroundBrush}" />
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
 
                                     <Path
                                         Width="24"
@@ -481,12 +588,12 @@
                                     <TextBlock
                                         FontSize="16"
                                         FontWeight="SemiBold"
-                                        Foreground="#212121"
                                         LineHeight="22"
                                         Text="{TemplateBinding Title}"
                                         TextWrapping="Wrap">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource LyuNotification.Light.TitleBrush}" />
                                                 <Setter Property="Visibility" Value="Visible" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Title, RelativeSource={RelativeSource TemplatedParent}}" Value="">
@@ -495,6 +602,11 @@
                                                     <DataTrigger Binding="{Binding Title, RelativeSource={RelativeSource TemplatedParent}}" Value="{x:Null}">
                                                         <Setter Property="Visibility" Value="Collapsed" />
                                                     </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                        Value="{x:Static helpers:WindowThemeMode.Dark}">
+                                                        <Setter Property="Foreground" Value="{DynamicResource LyuNotification.Dark.TitleBrush}" />
+                                                    </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </TextBlock.Style>
@@ -502,10 +614,22 @@
                                     <TextBlock
                                         Margin="0,6,0,0"
                                         FontSize="13"
-                                        Foreground="#757575"
                                         LineHeight="20"
                                         Text="{TemplateBinding Message}"
-                                        TextWrapping="Wrap" />
+                                        TextWrapping="Wrap">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource LyuNotification.Light.MessageBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger
+                                                        Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                        Value="{x:Static helpers:WindowThemeMode.Dark}">
+                                                        <Setter Property="Foreground" Value="{DynamicResource LyuNotification.Dark.MessageBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </StackPanel>
 
                                 <!--  Close Button  -->
@@ -516,9 +640,31 @@
                                     Height="24"
                                     Margin="12,0,0,0"
                                     VerticalAlignment="Top"
-                                    Background="Transparent"
                                     BorderThickness="0"
                                     Cursor="Hand">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="Foreground" Value="{DynamicResource LyuNotification.Light.CloseIconBrush}" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource LyuNotification.Light.CloseHoverBackgroundBrush}" />
+                                                </Trigger>
+                                                <DataTrigger
+                                                    Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                    Value="{x:Static helpers:WindowThemeMode.Dark}">
+                                                    <Setter Property="Foreground" Value="{DynamicResource LyuNotification.Dark.CloseIconBrush}" />
+                                                </DataTrigger>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="{x:Static helpers:WindowThemeMode.Dark}" />
+                                                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{DynamicResource LyuNotification.Dark.CloseHoverBackgroundBrush}" />
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
                                     <Button.RenderTransform>
                                         <TransformGroup>
                                             <RotateTransform x:Name="PART_CloseRotate" Angle="0" CenterX="12" CenterY="12" />
@@ -528,8 +674,10 @@
                                     <Path
                                         Width="10"
                                         Height="10"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
                                         Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                                        Fill="#BDBDBD"
+                                        Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                                         Stretch="Uniform" />
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
@@ -539,11 +687,6 @@
                                                 CornerRadius="12">
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#1A000000" />
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>

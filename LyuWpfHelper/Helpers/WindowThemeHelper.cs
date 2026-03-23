@@ -37,7 +37,7 @@ public static class WindowThemeHelper
 
     private static readonly object SyncLock = new();
     private static readonly List<WeakReference<Window>> FollowSystemWindows = [];
-    private static readonly DependencyProperty CurrentThemeProperty =
+    public static readonly DependencyProperty CurrentThemeProperty =
         DependencyProperty.RegisterAttached(
             "CurrentTheme",
             typeof(WindowThemeMode),
@@ -110,6 +110,11 @@ public static class WindowThemeHelper
     public static WindowThemeMode GetCurrentTheme(DependencyObject obj)
     {
         return (WindowThemeMode)obj.GetValue(CurrentThemeProperty);
+    }
+
+    public static void SetCurrentTheme(DependencyObject obj, WindowThemeMode value)
+    {
+        obj.SetValue(CurrentThemeProperty, value);
     }
 
     private static void OnThemeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
