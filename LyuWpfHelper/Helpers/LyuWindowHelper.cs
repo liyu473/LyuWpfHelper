@@ -228,8 +228,10 @@ public static class LyuWindowHelper
 
         if (monitor != IntPtr.Zero)
         {
-            var monitorInfo = new MONITORINFO();
-            monitorInfo.cbSize = (uint)Marshal.SizeOf(typeof(MONITORINFO));
+            var monitorInfo = new MONITORINFO
+            {
+                cbSize = (uint)Marshal.SizeOf<MONITORINFO>()
+            };
 
             if (GetMonitorInfo(monitor, ref monitorInfo))
             {

@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -40,158 +39,175 @@ public class LyuWindow : Window
     private double _normalTitleBarHeight;
     private bool _isLoadedInitialized;
 
-    public static readonly DependencyProperty TitleBarContentProperty =
-        DependencyProperty.Register(
-            nameof(TitleBarContent),
-            typeof(object),
-            typeof(LyuWindow),
-            new PropertyMetadata(null, OnTitleBarContentChanged));
+    public static readonly DependencyProperty TitleBarContentProperty = DependencyProperty.Register(
+        nameof(TitleBarContent),
+        typeof(object),
+        typeof(LyuWindow),
+        new PropertyMetadata(null, OnTitleBarContentChanged)
+    );
 
     public static readonly DependencyProperty TitleBarLeftContentProperty =
         DependencyProperty.Register(
             nameof(TitleBarLeftContent),
             typeof(object),
             typeof(LyuWindow),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null)
+        );
 
     public static readonly DependencyProperty TitleBarRightContentProperty =
         DependencyProperty.Register(
             nameof(TitleBarRightContent),
             typeof(object),
             typeof(LyuWindow),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null)
+        );
 
-    public static readonly DependencyProperty TitleBarHeightProperty =
-        DependencyProperty.Register(
-            nameof(TitleBarHeight),
-            typeof(double),
-            typeof(LyuWindow),
-            new PropertyMetadata(29d, OnTitleBarHeightChanged));
+    public static readonly DependencyProperty TitleBarHeightProperty = DependencyProperty.Register(
+        nameof(TitleBarHeight),
+        typeof(double),
+        typeof(LyuWindow),
+        new PropertyMetadata(29d, OnTitleBarHeightChanged)
+    );
 
     public static readonly DependencyProperty TitleBarBackgroundProperty =
         DependencyProperty.Register(
             nameof(TitleBarBackground),
             typeof(Brush),
             typeof(LyuWindow),
-            new PropertyMetadata(Brushes.WhiteSmoke));
+            new PropertyMetadata(Brushes.WhiteSmoke)
+        );
 
     public static readonly DependencyProperty TitleBarForegroundProperty =
         DependencyProperty.Register(
             nameof(TitleBarForeground),
             typeof(Brush),
             typeof(LyuWindow),
-            new PropertyMetadata(Brushes.Black));
+            new PropertyMetadata(Brushes.Black)
+        );
 
-    public static readonly DependencyProperty ShowTitleProperty =
-        DependencyProperty.Register(
-            nameof(ShowTitle),
-            typeof(bool),
-            typeof(LyuWindow),
-            new PropertyMetadata(true));
+    public static readonly DependencyProperty ShowTitleProperty = DependencyProperty.Register(
+        nameof(ShowTitle),
+        typeof(bool),
+        typeof(LyuWindow),
+        new PropertyMetadata(true)
+    );
 
-    public static readonly DependencyProperty ShowIconProperty =
-        DependencyProperty.Register(
-            nameof(ShowIcon),
-            typeof(bool),
-            typeof(LyuWindow),
-            new PropertyMetadata(false));
+    public static readonly DependencyProperty ShowIconProperty = DependencyProperty.Register(
+        nameof(ShowIcon),
+        typeof(bool),
+        typeof(LyuWindow),
+        new PropertyMetadata(false)
+    );
 
-    public static readonly DependencyProperty ShowMinButtonProperty =
-        DependencyProperty.Register(
-            nameof(ShowMinButton),
-            typeof(bool),
-            typeof(LyuWindow),
-            new PropertyMetadata(true));
+    public static readonly DependencyProperty ShowMinButtonProperty = DependencyProperty.Register(
+        nameof(ShowMinButton),
+        typeof(bool),
+        typeof(LyuWindow),
+        new PropertyMetadata(true)
+    );
 
-    public static readonly DependencyProperty ShowMaxButtonProperty =
-        DependencyProperty.Register(
-            nameof(ShowMaxButton),
-            typeof(bool),
-            typeof(LyuWindow),
-            new PropertyMetadata(true));
+    public static readonly DependencyProperty ShowMaxButtonProperty = DependencyProperty.Register(
+        nameof(ShowMaxButton),
+        typeof(bool),
+        typeof(LyuWindow),
+        new PropertyMetadata(true)
+    );
 
-    public static readonly DependencyProperty ShowCloseButtonProperty =
-        DependencyProperty.Register(
-            nameof(ShowCloseButton),
-            typeof(bool),
-            typeof(LyuWindow),
-            new PropertyMetadata(true));
+    public static readonly DependencyProperty ShowCloseButtonProperty = DependencyProperty.Register(
+        nameof(ShowCloseButton),
+        typeof(bool),
+        typeof(LyuWindow),
+        new PropertyMetadata(true)
+    );
 
-    public static readonly DependencyProperty TitleAlignmentProperty =
-        DependencyProperty.Register(
-            nameof(TitleAlignment),
-            typeof(HorizontalAlignment),
-            typeof(LyuWindow),
-            new PropertyMetadata(HorizontalAlignment.Left));
+    public static readonly DependencyProperty TitleAlignmentProperty = DependencyProperty.Register(
+        nameof(TitleAlignment),
+        typeof(HorizontalAlignment),
+        typeof(LyuWindow),
+        new PropertyMetadata(HorizontalAlignment.Left)
+    );
 
-    public static readonly DependencyProperty TitleMarginProperty =
-        DependencyProperty.Register(
-            nameof(TitleMargin),
-            typeof(Thickness),
-            typeof(LyuWindow),
-            new PropertyMetadata(new Thickness(10, 0, 0, 0)));
+    public static readonly DependencyProperty TitleMarginProperty = DependencyProperty.Register(
+        nameof(TitleMargin),
+        typeof(Thickness),
+        typeof(LyuWindow),
+        new PropertyMetadata(new Thickness(10, 0, 0, 0))
+    );
 
     public static readonly DependencyProperty CloseButtonBackgroundProperty =
         DependencyProperty.Register(
             nameof(CloseButtonBackground),
             typeof(Brush),
             typeof(LyuWindow),
-            new PropertyMetadata(Brushes.Transparent));
+            new PropertyMetadata(Brushes.Transparent)
+        );
 
     public static readonly DependencyProperty CloseButtonForegroundProperty =
         DependencyProperty.Register(
             nameof(CloseButtonForeground),
             typeof(Brush),
             typeof(LyuWindow),
-            new PropertyMetadata(Brushes.Black));
+            new PropertyMetadata(Brushes.Black)
+        );
 
     public static readonly DependencyProperty CloseButtonHoverBackgroundProperty =
         DependencyProperty.Register(
             nameof(CloseButtonHoverBackground),
             typeof(Brush),
             typeof(LyuWindow),
-            new PropertyMetadata(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E81123")!)));
+            new PropertyMetadata(
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E81123")!)
+            )
+        );
 
     public static readonly DependencyProperty CloseButtonHoverForegroundProperty =
         DependencyProperty.Register(
             nameof(CloseButtonHoverForeground),
             typeof(Brush),
             typeof(LyuWindow),
-            new PropertyMetadata(Brushes.White));
+            new PropertyMetadata(Brushes.White)
+        );
 
     public static readonly DependencyProperty OtherButtonBackgroundProperty =
         DependencyProperty.Register(
             nameof(OtherButtonBackground),
             typeof(Brush),
             typeof(LyuWindow),
-            new PropertyMetadata(Brushes.Transparent));
+            new PropertyMetadata(Brushes.Transparent)
+        );
 
     public static readonly DependencyProperty OtherButtonForegroundProperty =
         DependencyProperty.Register(
             nameof(OtherButtonForeground),
             typeof(Brush),
             typeof(LyuWindow),
-            new PropertyMetadata(Brushes.Black));
+            new PropertyMetadata(Brushes.Black)
+        );
 
     public static readonly DependencyProperty OtherButtonHoverBackgroundProperty =
         DependencyProperty.Register(
             nameof(OtherButtonHoverBackground),
             typeof(Brush),
             typeof(LyuWindow),
-            new PropertyMetadata(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E6E6E6")!)));
+            new PropertyMetadata(
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E6E6E6")!)
+            )
+        );
 
     public static readonly DependencyProperty OtherButtonHoverForegroundProperty =
         DependencyProperty.Register(
             nameof(OtherButtonHoverForeground),
             typeof(Brush),
             typeof(LyuWindow),
-            new PropertyMetadata(Brushes.Black));
+            new PropertyMetadata(Brushes.Black)
+        );
 
     static LyuWindow()
     {
         DefaultStyleKeyProperty.OverrideMetadata(
             typeof(LyuWindow),
-            new FrameworkPropertyMetadata(typeof(LyuWindow)));
+            new FrameworkPropertyMetadata(typeof(LyuWindow))
+        );
     }
 
     public LyuWindow()
@@ -199,11 +215,33 @@ public class LyuWindow : Window
         SetResourceReference(StyleProperty, typeof(LyuWindow));
         Loaded += OnLoaded;
 
-        CommandBindings.Add(new CommandBinding(SystemCommands.MinimizeWindowCommand, (_, _) => SystemCommands.MinimizeWindow(this)));
-        CommandBindings.Add(new CommandBinding(SystemCommands.MaximizeWindowCommand, (_, _) => SystemCommands.MaximizeWindow(this)));
-        CommandBindings.Add(new CommandBinding(SystemCommands.RestoreWindowCommand, (_, _) => SystemCommands.RestoreWindow(this)));
-        CommandBindings.Add(new CommandBinding(SystemCommands.CloseWindowCommand, (_, _) => SystemCommands.CloseWindow(this)));
-        CommandBindings.Add(new CommandBinding(SystemCommands.ShowSystemMenuCommand, (_, _) => ShowSystemMenu()));
+        CommandBindings.Add(
+            new CommandBinding(
+                SystemCommands.MinimizeWindowCommand,
+                (_, _) => SystemCommands.MinimizeWindow(this)
+            )
+        );
+        CommandBindings.Add(
+            new CommandBinding(
+                SystemCommands.MaximizeWindowCommand,
+                (_, _) => SystemCommands.MaximizeWindow(this)
+            )
+        );
+        CommandBindings.Add(
+            new CommandBinding(
+                SystemCommands.RestoreWindowCommand,
+                (_, _) => SystemCommands.RestoreWindow(this)
+            )
+        );
+        CommandBindings.Add(
+            new CommandBinding(
+                SystemCommands.CloseWindowCommand,
+                (_, _) => SystemCommands.CloseWindow(this)
+            )
+        );
+        CommandBindings.Add(
+            new CommandBinding(SystemCommands.ShowSystemMenuCommand, (_, _) => ShowSystemMenu())
+        );
     }
 
     public override void OnApplyTemplate()
@@ -238,7 +276,7 @@ public class LyuWindow : Window
             int style = GetWindowLong(hwnd, -16); // GWL_STYLE
             // Remove WS_SYSMENU to hide caption buttons, but keep WS_CAPTION for animations
             style &= ~0x00080000; // Remove WS_SYSMENU (0x00080000)
-            SetWindowLong(hwnd, -16, style);
+            _ = SetWindowLong(hwnd, -16, style);
         }
     }
 
@@ -282,7 +320,10 @@ public class LyuWindow : Window
         ApplyWindowStateLayout(WindowState);
     }
 
-    private static void OnTitleBarHeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnTitleBarHeightChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
     {
         if (d is not LyuWindow window)
         {
@@ -297,7 +338,10 @@ public class LyuWindow : Window
         window.ApplyWindowChrome(window.WindowState);
     }
 
-    private static void OnTitleBarContentChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnTitleBarContentChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
     {
         if (d is not LyuWindow window)
         {
@@ -322,12 +366,14 @@ public class LyuWindow : Window
         chrome.GlassFrameThickness = backdropType != 0 ? new Thickness(-1) : new Thickness(0);
 
         chrome.UseAeroCaptionButtons = false;
-        chrome.ResizeBorderThickness = state == WindowState.Maximized ? new Thickness(0) : new Thickness(6);
+        chrome.ResizeBorderThickness =
+            state == WindowState.Maximized ? new Thickness(0) : new Thickness(6);
         chrome.CaptionHeight = Math.Max(0, TitleBarHeight - TitleBarCaptionFix);
         BindingOperations.SetBinding(
             chrome,
             WindowChrome.CaptionHeightProperty,
-            new Binding(nameof(TitleBarHeight)) { Source = this, Mode = BindingMode.OneWay });
+            new Binding(nameof(TitleBarHeight)) { Source = this, Mode = BindingMode.OneWay }
+        );
         WindowChrome.SetWindowChrome(this, chrome);
     }
 
@@ -405,11 +451,17 @@ public class LyuWindow : Window
         switch (msg)
         {
             case WmWindowPosChanged:
-                Padding = WindowState == WindowState.Maximized ? GetWindowMaximizedPadding() : _commonPadding;
+                Padding =
+                    WindowState == WindowState.Maximized
+                        ? GetWindowMaximizedPadding()
+                        : _commonPadding;
                 break;
             case WmGetMinMaxInfo:
                 UpdateMinMaxInfo(hwnd, lParam);
-                Padding = WindowState == WindowState.Maximized ? GetWindowMaximizedPadding() : _commonPadding;
+                Padding =
+                    WindowState == WindowState.Maximized
+                        ? GetWindowMaximizedPadding()
+                        : _commonPadding;
                 handled = true;
                 break;
         }
@@ -424,10 +476,7 @@ public class LyuWindow : Window
         IntPtr monitor = MonitorFromWindow(hwnd, MonitorDefaultToNearest);
         if (monitor != IntPtr.Zero)
         {
-            MONITORINFO monitorInfo = new()
-            {
-                cbSize = Marshal.SizeOf<MONITORINFO>()
-            };
+            MONITORINFO monitorInfo = new() { cbSize = Marshal.SizeOf<MONITORINFO>() };
 
             if (GetMonitorInfo(monitor, ref monitorInfo))
             {
@@ -467,10 +516,7 @@ public class LyuWindow : Window
 
     private static bool IsTaskbarAutoHide()
     {
-        APPBARDATA appBarData = new()
-        {
-            cbSize = Marshal.SizeOf<APPBARDATA>()
-        };
+        APPBARDATA appBarData = new() { cbSize = Marshal.SizeOf<APPBARDATA>() };
 
         uint state = SHAppBarMessage(AbmGetState, ref appBarData);
         return (state & AbsAutoHide) == AbsAutoHide;
@@ -484,7 +530,12 @@ public class LyuWindow : Window
         }
 
         int policy = DwmncrpUseWindowStyle;
-        _ = DwmSetWindowAttribute(_hwndSource.Handle, DwmwaNcRenderingPolicy, ref policy, sizeof(int));
+        _ = DwmSetWindowAttribute(
+            _hwndSource.Handle,
+            DwmwaNcRenderingPolicy,
+            ref policy,
+            sizeof(int)
+        );
     }
 
     private void ApplyRoundedCorners(WindowState state)
@@ -495,7 +546,12 @@ public class LyuWindow : Window
         }
 
         int preference = state == WindowState.Maximized ? DwmwcpDoNotRound : DwmwcpRound;
-        _ = DwmSetWindowAttribute(_hwndSource.Handle, DwmwaWindowCornerPreference, ref preference, sizeof(int));
+        _ = DwmSetWindowAttribute(
+            _hwndSource.Handle,
+            DwmwaWindowCornerPreference,
+            ref preference,
+            sizeof(int)
+        );
     }
 
     private void ShowSystemMenu()
@@ -514,15 +570,17 @@ public class LyuWindow : Window
                 return false;
             }
 
-            if (current is ButtonBase ||
-                current is TextBoxBase ||
-                current is PasswordBox ||
-                current is ComboBox ||
-                current is ListBoxItem ||
-                current is Slider ||
-                current is ScrollBar ||
-                current is Menu ||
-                current is MenuItem)
+            if (
+                current is ButtonBase
+                || current is TextBoxBase
+                || current is PasswordBox
+                || current is ComboBox
+                || current is ListBoxItem
+                || current is Slider
+                || current is ScrollBar
+                || current is Menu
+                || current is MenuItem
+            )
             {
                 return true;
             }
@@ -543,8 +601,7 @@ public class LyuWindow : Window
         return LogicalTreeHelper.GetParent(current);
     }
 
-    private static bool AreClose(double a, double b) =>
-        Math.Abs(a - b) < 0.01d;
+    private static bool AreClose(double a, double b) => Math.Abs(a - b) < 0.01d;
 
     public object? TitleBarContent
     {
@@ -728,7 +785,12 @@ public class LyuWindow : Window
     private static extern uint SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
 
     [DllImport("dwmapi.dll")]
-    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
+    private static extern int DwmSetWindowAttribute(
+        IntPtr hwnd,
+        int dwAttribute,
+        ref int pvAttribute,
+        int cbAttribute
+    );
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool ReleaseCapture();
