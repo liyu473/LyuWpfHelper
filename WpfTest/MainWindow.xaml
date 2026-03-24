@@ -13,7 +13,6 @@
     d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
     lyu:LyuWindowHelper.FullScreenKey="F11"
     lyu:WindowBackdropHelper.Backdrop="Mica"
-
     Icon="/Asserts/logo.ico"
     TitleBarBackground="Transparent"
     TitleBarHeight="40"

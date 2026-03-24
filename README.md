@@ -67,8 +67,7 @@ services.AddLyuNotificationService();
 **基本用法：**
 ```xml
 <lyu:TransitioningContentControl Content="{Binding CurrentView}"
-                                  TransitionType="Fade"
-                                  Duration="0:0:0.3" />
+                                  TransitionMode="Fade"/>
 ```
 
 **动画类型：**
@@ -79,10 +78,6 @@ services.AddLyuNotificationService();
 - `SlideDown` - 从上向下滑动
 - `Zoom` - 缩放效果
 - `None` - 无动画
-
-**属性：**
-- `TransitionType` - 过渡动画类型（默认：Fade）
-- `Duration` - 动画持续时间（默认：0.3秒）
 
 ### 🎨 面板 (Panels)
 
@@ -101,9 +96,205 @@ services.AddLyuNotificationService();
 - `Orientation` - 方向（Vertical/Horizontal）
 - `Spacing` - 子元素间距
 
+### 🪟 窗口控件 (Window Controls)
+
+#### LyuWindow
+支持丰富的非客户区自定义。
+
+**基本用法：**
+
+```xml
+<lyu:LyuWindow x:Class="YourApp.MainWindow"
+               xmlns:lyu="http://schemas.lyuwpfhelper.com/winfx/xaml"
+               Title="我的应用"
+               Width="800" Height="600">
+    <!-- 窗口内容 -->
+</lyu:LyuWindow>
+```
+
+**自定义标题栏：**
+```xml
+<lyu:LyuWindow TitleBarHeight="40"
+               TitleBarBackground="#2196F3"
+               TitleBarForeground="White"
+               ShowIcon="True"
+               ShowTitle="True"
+               TitleAlignment="Center">
+
+    <!-- 标题栏左侧内容 -->
+    <lyu:LyuWindow.TitleBarLeftContent>
+        <StackPanel Orientation="Horizontal">
+            <Button Content="菜单" />
+        </StackPanel>
+    </lyu:LyuWindow.TitleBarLeftContent>
+
+    <!-- 标题栏右侧内容 -->
+    <lyu:LyuWindow.TitleBarRightContent>
+        <StackPanel Orientation="Horizontal">
+            <Button Content="设置" />
+        </StackPanel>
+    </lyu:LyuWindow.TitleBarRightContent>
+
+    <!-- 窗口内容 -->
+</lyu:LyuWindow>
+```
+
+**主要属性：**
+- `TitleBarHeight` - 标题栏高度（默认：29）
+- `TitleBarBackground` - 标题栏背景色
+- `TitleBarForeground` - 标题栏前景色
+- `TitleBarLeftContent` - 标题栏左侧自定义内容
+- `TitleBarRightContent` - 标题栏右侧自定义内容
+- `ShowTitle` - 是否显示标题（默认：true）
+- `ShowIcon` - 是否显示图标（默认：false）
+- `ShowMinButton` - 是否显示最小化按钮（默认：true）
+- `ShowMaxButton` - 是否显示最大化按钮（默认：true）
+- `ShowCloseButton` - 是否显示关闭按钮（默认：true）
+- `TitleAlignment` - 标题对齐方式（Left/Center/Right）
+- `TitleMargin` - 标题边距
+
+**主题事件：**
+```csharp
+public partial class MainWindow : LyuWindow
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+        ThemeChanged += OnThemeChanged;
+    }
+
+    private void OnThemeChanged(object? sender, LyuWindowThemeChangedEventArgs e)
+    {
+        // 响应主题变化
+        Console.WriteLine($"主题已切换: {e.EffectiveTheme}");
+    }
+}
+```
+
 ### 🛠️ 辅助类 (Helpers)
 
-#### GridHelper
+#### WindowBackdropHelper
+窗口背景材质辅助类，为窗口添加 Acrylic、Mica 等现代化背景效果（Windows 11+）。
+
+**基本用法：**
+```xml
+<!-- Mica 材质 -->
+<Window lyu:WindowBackdropHelper.Backdrop="Mica" />
+
+<!-- Acrylic 材质 -->
+<Window lyu:WindowBackdropHelper.Backdrop="Acrylic" />
+
+<!-- Tabbed 材质（Windows 11 22H2+）-->
+<Window lyu:WindowBackdropHelper.Backdrop="Tabbed" />
+
+<!-- 默认白色背景 -->
+<Window lyu:WindowBackdropHelper.Backdrop="Default" />
+```
+
+**与 LyuWindow 配合使用：**
+```xml
+<lyu:LyuWindow lyu:WindowBackdropHelper.Backdrop="Mica"
+               TitleBarBackground="Transparent">
+    <!-- 内容 -->
+</lyu:LyuWindow>
+```
+
+**材质类型：**
+- `Default` - 默认白色背景（无特效）
+- `Acrylic` - 亚克力效果（半透明模糊）
+- `Mica` - 云母效果（系统壁纸融合）
+- `Tabbed` - 标签页优化效果
+
+**设置深色模式：**
+```csharp
+WindowBackdropHelper.SetImmersiveDarkMode(window, true);
+```
+
+**注意：** 这些效果仅在 Windows 11 及更高版本上可用。
+
+#### LyuWindowHelper
+窗口全屏辅助类，提供窗口全屏功能。
+
+**基本用法：**
+```xml
+<!-- 绑定全屏状态 -->
+<Window lyu:LyuWindowHelper.IsFullScreen="{Binding IsFullScreen}" />
+
+<!-- 设置全屏快捷键（F11）-->
+<Window lyu:LyuWindowHelper.FullScreenKey="F11" />
+```
+
+**代码方式切换全屏：**
+```csharp
+// 切换全屏
+LyuWindowHelper.ToggleFullScreen(window);
+
+// 设置全屏
+LyuWindowHelper.SetIsFullScreen(window, true);
+
+// 退出全屏
+LyuWindowHelper.SetIsFullScreen(window, false);
+
+// 获取全屏状态
+bool isFullScreen = LyuWindowHelper.GetIsFullScreen(window);
+```
+
+**特性：**
+- 自动保存和恢复窗口状态
+- 支持多显示器
+- 支持 DPI 缩放
+- 支持快捷键切换
+- 覆盖任务栏
+
+#### TabControlTransitionHelper
+TabControl 过渡动画辅助类，为标签页切换添加动画效果。
+
+**基本用法：**
+```xml
+<!-- 使用预设动画 -->
+<TabControl lyu:TabControlTransitionHelper.TransitionMode="Fade">
+    <TabItem Header="标签1">
+        <TextBlock Text="内容1" />
+    </TabItem>
+    <TabItem Header="标签2">
+        <TextBlock Text="内容2" />
+    </TabItem>
+</TabControl>
+```
+
+**动画类型：**
+- `Fade` - 淡入淡出（默认）
+- `SlideLeft` - 从右向左滑动
+- `SlideRight` - 从左向右滑动
+- `SlideUp` - 从下向上滑动
+- `SlideDown` - 从上向下滑动
+- `Zoom` - 缩放效果
+- `None` - 无动画
+- `Custom` - 自定义动画
+
+**自定义动画：**
+```xml
+<TabControl lyu:TabControlTransitionHelper.TransitionMode="Custom">
+    <lyu:TabControlTransitionHelper.TransitionStoryboard>
+        <Storyboard>
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                           From="0" To="1" Duration="0:0:0.5" />
+        </Storyboard>
+    </lyu:TabControlTransitionHelper.TransitionStoryboard>
+
+    <TabItem Header="标签1">
+        <TextBlock Text="内容1" />
+    </TabItem>
+</TabControl>
+```
+
+**特性：**
+- 无需创建新控件，直接增强原生 TabControl
+- 支持多种预设动画
+- 支持自定义 Storyboard
+- 保持原有 ContentTemplate 和数据绑定
+
+#### GridHelper（Net 9+ 原生内置了）
 Grid 辅助类，提供简化的行列定义语法，让 Grid 布局更简洁易读。
 
 **基本用法：**
@@ -160,14 +351,6 @@ Grid 辅助类，提供简化的行列定义语法，让 Grid 布局更简洁易
     <!-- 网格内容 -->
 </Grid>
 ```
-
-**优势：**
-- 代码更简洁，减少 XAML 冗余
-- 一行定义多个行/列
-- 易于阅读和维护
-- 支持所有标准 GridLength 类型
-
-### 🎯 行为 (Behaviors)
 
 #### DataGridSelectedItemsBehavior
 DataGrid 多选绑定辅助，完美支持 MVVM 模式。
