@@ -9,7 +9,7 @@
 
 		<!-- NuGet 包信息 -->
 		<PackageId>LyuWpfHelper</PackageId>
-		<Version>1.1.4</Version>
+		<Version>1.2.1</Version>
 		<Authors>Liyu</Authors>
 		<Description>一些wpf的辅助类/拓展，依赖mvvm社区包</Description>
 		<PackageTags>wpf;helper;mvvm;notification</PackageTags>
