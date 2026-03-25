@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using LyuWpfHelper.Controls;
+using Microsoft.Win32;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using LyuWpfHelper.Controls;
-using Microsoft.Win32;
 
 namespace LyuWpfHelper.Helpers;
 
@@ -14,8 +12,11 @@ namespace LyuWpfHelper.Helpers;
 /// </summary>
 public enum WindowThemeMode
 {
+    [Description("跟随系统")]
     FollowSystem,
+    [Description("明亮")]
     Light,
+    [Description("深色")]
     Dark,
 }
 
@@ -92,6 +93,15 @@ public static class WindowThemeHelper
             return;
         }
 
+        if (theme == WindowThemeMode.FollowSystem)
+        {
+            RegisterFollowSystemWindow(window);
+        }
+        else
+        {
+            UnregisterFollowSystemWindow(window);
+        }
+
         window.SetValue(CurrentThemeProperty, theme);
 
         WindowThemeMode effectiveTheme = ResolveThemeMode(theme);
@@ -125,15 +135,6 @@ public static class WindowThemeHelper
         }
 
         WindowThemeMode themeMode = (WindowThemeMode)e.NewValue;
-        if (themeMode == WindowThemeMode.FollowSystem)
-        {
-            RegisterFollowSystemWindow(window);
-        }
-        else
-        {
-            UnregisterFollowSystemWindow(window);
-        }
-
         ApplyTheme(window, themeMode);
     }
 

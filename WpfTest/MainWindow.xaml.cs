@@ -450,7 +450,7 @@ public partial class MainWindow : LyuWindow
 
         if (Enum.TryParse(themeTag, true, out WindowThemeMode themeMode))
         {
-            WindowThemeHelper.ApplyTheme(this, themeMode);
+            WindowThemeHelper.SetTheme(this, themeMode);
         }
     }
 

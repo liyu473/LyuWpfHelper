@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -12,21 +13,25 @@ public enum WindowBackdropType
     /// <summary>
     /// Default white background (no backdrop effect)
     /// </summary>
+    [Description("默认")]
     Default = 0,
 
     /// <summary>
     /// Acrylic backdrop effect (Windows 11+)
     /// </summary>
+    [Description("亚克力")]
     Acrylic = 1,
 
     /// <summary>
     /// Mica backdrop effect (Windows 11+)
     /// </summary>
+    [Description("云母")]
     Mica = 2,
 
     /// <summary>
     /// Tabbed backdrop effect - optimized for tabbed windows (Windows 11 22H2+)
     /// </summary>
+    [Description("标签式")]
     Tabbed = 3
 }
 

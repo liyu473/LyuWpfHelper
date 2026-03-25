@@ -58,7 +58,7 @@ public partial class BackdropTestWindow : Window
 
         if (Enum.TryParse(themeTag, true, out WindowThemeMode themeMode))
         {
-            WindowThemeHelper.ApplyTheme(this, themeMode);
+            WindowThemeHelper.SetTheme(this, themeMode);
             SyncRequestedTheme();
         }
     }
