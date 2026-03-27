@@ -1,8 +1,13 @@
-﻿using LyuWpfHelper.Extensions;
+﻿using System.Windows;
 using iNKORE.UI.WPF.Modern;
+using LyuLogExtension.Builder;
+using LyuLogExtension.Extensions;
+using LyuWpfHelper.Extensions;
+using LyuWpfHelper.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Windows;
+using Microsoft.Extensions.Logging;
+using ZLogger.Providers;
 
 namespace WpfTest
 {
@@ -16,17 +21,30 @@ namespace WpfTest
         public App()
         {
             _host = Host.CreateDefaultBuilder()
-                .ConfigureServices((context, services) =>
-                {
-                    // 注册 LyuWpfHelper 服务
-                    services.AddLyuNotificationService();
+                .ConfigureServices(
+                    (context, services) =>
+                    {
+                        // 配置日志系统
+                        services.AddZLogger(builder =>
+                            builder
+                                .FilterMicrosoft()
+                                .FilterSystem()
+                                .AddFileOutput("logs/trace/", LogLevel.Trace)
+                                .AddFileOutput("logs/info/", LogLevel.Information)
+                                .WithRollingInterval(RollingInterval.Day)
+                                .WithRollingSizeKB(4096)
+                        );
 
-                    // 注册 ViewModel
-                    services.AddSingleton<MainViewModel>();
+                        // 注册 LyuWpfHelper 服务
+                        services.AddLyuNotificationService();
 
-                    // 注册 MainWindow
-                    services.AddSingleton<MainWindow>();
-                })
+                        // 注册 ViewModel
+                        services.AddSingleton<MainViewModel>();
+
+                        // 注册 MainWindow
+                        services.AddSingleton<MainWindow>();
+                    }
+                )
                 .Build();
         }
 
@@ -40,6 +58,29 @@ namespace WpfTest
             var mainWindow = _host.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
 
+            var logger = _host.Services.GetRequiredService<ILogger<App>>();
+            var global = new GlobalExceptionHandler(
+                logger,
+                ex =>
+                {
+                    if (Current?.Dispatcher != null)
+                    {
+                        Current.Dispatcher.BeginInvoke(
+                            new Action(() =>
+                            {
+                                MessageBox.Show(
+                                    ex.Message,
+                                    "全局异常",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Error
+                                );
+                            })
+                        );
+                    }
+                }
+            );
+            global.Initialize(); 
+
             base.OnStartup(e);
         }
 
@@ -51,5 +92,4 @@ namespace WpfTest
             base.OnExit(e);
         }
     }
-
 }

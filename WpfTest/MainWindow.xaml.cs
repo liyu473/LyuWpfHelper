@@ -462,4 +462,9 @@ public partial class MainWindow : LyuWindow
 
         ThemeManager.SetRequestedTheme(this, elementTheme);
     }
+
+    private void ThrowError_Click(object sender, RoutedEventArgs e)
+    {
+        throw new Exception("这是一个测试异常");
+    }
 }
