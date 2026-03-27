@@ -19,7 +19,7 @@
     <SolidColorBrush x:Key="LyuDrawer.Dark.BackgroundBrush" Color="#FF242424" />
     <SolidColorBrush x:Key="LyuDrawer.Dark.ForegroundBrush" Color="#FFF2F2F2" />
     <SolidColorBrush x:Key="LyuDrawer.Dark.BorderBrush" Color="#30FFFFFF" />
-    <SolidColorBrush x:Key="LyuDrawer.Dark.HeaderBackgroundBrush" Color="#FF2D2D2D" />
+    <SolidColorBrush x:Key="LyuDrawer.Dark.HeaderBackgroundBrush" Color="#FF242424" />
     <SolidColorBrush x:Key="LyuDrawer.Dark.HeaderForegroundBrush" Color="#FFF2F2F2" />
     <SolidColorBrush x:Key="LyuDrawer.Dark.CloseIconBrush" Color="#FFE4E4E4" />
     <SolidColorBrush x:Key="LyuDrawer.Dark.CloseHoverBackgroundBrush" Color="#26FFFFFF" />
