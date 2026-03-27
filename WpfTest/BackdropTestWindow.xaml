@@ -21,10 +21,7 @@
             <lyu:Drawer
                 x:Name="TestDrawer"
                 CloseOnOverlayClick="True"
-                ExternalCloseButton="Left"
-                IsModal="True"
-                IsPinned="False"
-                ShowOverlay="True" />
+                IsModal="True" />
         </lyu:DrawersHost>
 
         <!--  标题栏区域  -->

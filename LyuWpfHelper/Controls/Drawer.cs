@@ -96,25 +96,25 @@ public class Drawer : HeaderedContentControl
 
     public static readonly DependencyProperty IsShownProperty = IsShownPropertyKey.DependencyProperty;
 
-    public static readonly DependencyProperty IsPinnedProperty = DependencyProperty.Register(
-        nameof(IsPinned),
-        typeof(bool),
-        typeof(Drawer),
-        new PropertyMetadata(false)
-    );
-
     public static readonly DependencyProperty IsModalProperty = DependencyProperty.Register(
         nameof(IsModal),
         typeof(bool),
         typeof(Drawer),
-        new PropertyMetadata(false, OnOverlayRelevantPropertyChanged)
+        new PropertyMetadata(true, OnOverlayRelevantPropertyChanged)
     );
 
-    public static readonly DependencyProperty ShowOverlayProperty = DependencyProperty.Register(
-        nameof(ShowOverlay),
-        typeof(bool),
+    public static readonly DependencyProperty OverlayBrushProperty = DependencyProperty.Register(
+        nameof(OverlayBrush),
+        typeof(Brush),
         typeof(Drawer),
-        new PropertyMetadata(true, OnOverlayRelevantPropertyChanged)
+        new PropertyMetadata(null, OnOverlayVisualPropertyChanged)
+    );
+
+    public static readonly DependencyProperty OverlayOpacityProperty = DependencyProperty.Register(
+        nameof(OverlayOpacity),
+        typeof(double),
+        typeof(Drawer),
+        new PropertyMetadata(1d, OnOverlayVisualPropertyChanged)
     );
 
     public static readonly DependencyProperty ShowHeaderProperty = DependencyProperty.Register(
@@ -153,14 +153,6 @@ public class Drawer : HeaderedContentControl
             typeof(Drawer),
             new PropertyMetadata(false)
         );
-
-    public static readonly DependencyProperty ExternalCloseButtonProperty =
-        DependencyProperty.Register(
-            nameof(ExternalCloseButton),
-            typeof(MouseButton),
-            typeof(Drawer),
-            new PropertyMetadata(MouseButton.Left)
-    );
 
     public static readonly DependencyProperty CloseOnEscapeProperty = DependencyProperty.Register(
         nameof(CloseOnEscape),
@@ -202,7 +194,7 @@ public class Drawer : HeaderedContentControl
         nameof(AnimationDuration),
         typeof(Duration),
         typeof(Drawer),
-        new PropertyMetadata(new Duration(TimeSpan.FromMilliseconds(260)), OnAnimationDurationChanged)
+        new PropertyMetadata(new Duration(TimeSpan.FromMilliseconds(500)), OnAnimationDurationChanged)
     );
 
     public static readonly DependencyProperty AutoCloseDelayProperty = DependencyProperty.Register(
@@ -392,22 +384,22 @@ public class Drawer : HeaderedContentControl
 
     public bool IsShown => (bool)GetValue(IsShownProperty);
 
-    public bool IsPinned
-    {
-        get => (bool)GetValue(IsPinnedProperty);
-        set => SetValue(IsPinnedProperty, value);
-    }
-
     public bool IsModal
     {
         get => (bool)GetValue(IsModalProperty);
         set => SetValue(IsModalProperty, value);
     }
 
-    public bool ShowOverlay
+    public Brush? OverlayBrush
     {
-        get => (bool)GetValue(ShowOverlayProperty);
-        set => SetValue(ShowOverlayProperty, value);
+        get => (Brush?)GetValue(OverlayBrushProperty);
+        set => SetValue(OverlayBrushProperty, value);
+    }
+
+    public double OverlayOpacity
+    {
+        get => (double)GetValue(OverlayOpacityProperty);
+        set => SetValue(OverlayOpacityProperty, value);
     }
 
     public bool ShowHeader
@@ -438,12 +430,6 @@ public class Drawer : HeaderedContentControl
     {
         get => (bool)GetValue(CloseButtonIsCancelProperty);
         set => SetValue(CloseButtonIsCancelProperty, value);
-    }
-
-    public MouseButton ExternalCloseButton
-    {
-        get => (MouseButton)GetValue(ExternalCloseButtonProperty);
-        set => SetValue(ExternalCloseButtonProperty, value);
     }
 
     public bool CloseOnEscape
@@ -893,9 +879,19 @@ public class Drawer : HeaderedContentControl
             return;
         }
 
+        // Respect explicit ThemeMode values (local value/binding) to avoid being
+        // overridden by legacy Theme setter updates from styles.
+        ValueSource themeModeSource = DependencyPropertyHelper.GetValueSource(drawer, ThemeModeProperty);
+        if (themeModeSource.BaseValueSource == BaseValueSource.Local)
+        {
+            drawer.UpdateResolvedTheme();
+            return;
+        }
+
         drawer._isSyncingThemeState = true;
         drawer.SetCurrentValue(ThemeModeProperty, e.NewValue);
         drawer._isSyncingThemeState = false;
+        drawer.UpdateResolvedTheme();
     }
 
     private static void OnOverlayRelevantPropertyChanged(
@@ -906,6 +902,17 @@ public class Drawer : HeaderedContentControl
         if (d is Drawer { IsOpen: true } drawer)
         {
             drawer.RaiseEvent(new RoutedEventArgs(IsOpenChangedEvent, drawer));
+            drawer.NotifyOwnerHostStateChanged();
+        }
+    }
+
+    private static void OnOverlayVisualPropertyChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is Drawer { IsOpen: true } drawer)
+        {
             drawer.NotifyOwnerHostStateChanged();
         }
     }

@@ -523,14 +523,7 @@
                         <lyu:Drawer
                             x:Name="LeftDemoDrawer"
                             Width="340"
-                            AnimateOpacity="True"
-                            AnimationDuration="0:0:0.26"
-                            AreAnimationsEnabled="True"
-                            CloseOnOverlayClick="True"
-                            ExternalCloseButton="Left"
                             Header="左侧抽屉"
-                            IsModal="True"
-                            IsPinned="False"
                             Position="Left"
                             ThemeMode="Inverse">
                             <TextBlock Text="这里是左侧抽屉内容。" TextWrapping="Wrap" />
@@ -539,49 +532,24 @@
                         <lyu:Drawer
                             x:Name="RightDemoDrawer"
                             Width="340"
-                            AnimateOpacity="True"
-                            AnimationDuration="0:0:0.26"
-                            AreAnimationsEnabled="True"
-                            CloseOnOverlayClick="True"
-                            ExternalCloseButton="Left"
                             Header="右侧抽屉"
-                            IsModal="True"
-                            IsPinned="False"
-                            Position="Right"
-                            ShowOverlay="True"
-                            ThemeMode="Inverse">
+                            Position="Right">
                             <TextBlock Text="这里是右侧抽屉内容。" TextWrapping="Wrap" />
                         </lyu:Drawer>
 
                         <lyu:Drawer
                             x:Name="TopDemoDrawer"
                             Height="220"
-                            AnimateOpacity="True"
-                            AnimationDuration="0:0:0.26"
-                            AreAnimationsEnabled="True"
-                            CloseOnOverlayClick="True"
-                            ExternalCloseButton="Left"
                             Header="顶部抽屉"
-                            IsModal="True"
-                            IsPinned="False"
-                            Position="Top"
-                            ThemeMode="Adapt">
+                            Position="Top">
                             <TextBlock Text="这里是顶部抽屉内容。" TextWrapping="Wrap" />
                         </lyu:Drawer>
 
                         <lyu:Drawer
                             x:Name="BottomDemoDrawer"
                             Height="240"
-                            AnimateOpacity="True"
-                            AnimationDuration="0:0:0.26"
-                            AreAnimationsEnabled="True"
-                            CloseOnOverlayClick="True"
-                            ExternalCloseButton="Left"
                             Header="底部抽屉"
-                            IsModal="True"
-                            IsPinned="False"
-                            Position="Bottom"
-                            ThemeMode="Adapt">
+                            Position="Bottom">
                             <TextBlock Text="这里是底部抽屉内容。" TextWrapping="Wrap" />
                         </lyu:Drawer>
                     </lyu:DrawersHost>

@@ -35,12 +35,6 @@
         <Setter Property="Panel.ZIndex" Value="2147483647" />
         <Setter Property="Focusable" Value="False" />
         <Setter Property="IsTabStop" Value="False" />
-        <Setter Property="OverlayOpacity" Value="1" />
-        <Setter Property="OverlayMode" Value="{x:Static controls:DrawerOverlayMode.ModalOnly}" />
-        <Setter Property="OverlayCloseBehavior" Value="{x:Static controls:DrawerOverlayCloseBehavior.CloseTopMost}" />
-        <Setter Property="CloseOnOverlayClick" Value="True" />
-        <Setter Property="CloseOnEscape" Value="True" />
-        <Setter Property="OverlayBrush" Value="{DynamicResource LyuDrawer.Light.OverlayBrush}" />
         <Setter Property="ItemsPanel">
             <Setter.Value>
                 <ItemsPanelTemplate>
@@ -54,27 +48,16 @@
                     <Grid ClipToBounds="True">
                         <Rectangle
                             x:Name="PART_OverlayLayer"
-                            Fill="{TemplateBinding OverlayBrush}"
+                            Fill="{DynamicResource LyuDrawer.Light.OverlayBrush}"
                             IsHitTestVisible="False"
-                            Opacity="{TemplateBinding OverlayOpacity}"
+                            Opacity="1"
                             Visibility="Hidden" />
 
                         <ItemsPresenter />
                     </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="HasVisibleOverlay" Value="True">
-                            <Setter TargetName="PART_OverlayLayer" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="PART_OverlayLayer" Property="IsHitTestVisible" Value="True" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Triggers>
-            <Trigger Property="ActualTheme" Value="{x:Static helpers:WindowThemeMode.Dark}">
-                <Setter Property="OverlayBrush" Value="{DynamicResource LyuDrawer.Dark.OverlayBrush}" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 
     <Style x:Key="LyuDrawer.HeaderCloseButtonStyle" TargetType="{x:Type Button}">
@@ -144,8 +127,9 @@
         <Setter Property="AllowFocusElement" Value="True" />
         <Setter Property="IsAutoCloseEnabled" Value="False" />
         <Setter Property="AutoCloseInterval" Value="5000" />
-        <Setter Property="Theme" Value="{x:Static controls:DrawerThemeMode.Adapt}" />
         <Setter Property="ThemeMode" Value="{x:Static controls:DrawerThemeMode.Adapt}" />
+        <Setter Property="OverlayBrush" Value="{DynamicResource LyuDrawer.Light.OverlayBrush}" />
+        <Setter Property="OverlayOpacity" Value="1" />
         <Setter Property="Visibility" Value="Hidden" />
         <Setter Property="Focusable" Value="True" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
@@ -406,6 +390,7 @@
                 <Setter Property="HeaderForeground" Value="{DynamicResource LyuDrawer.Dark.HeaderForegroundBrush}" />
                 <Setter Property="CloseButtonForeground" Value="{DynamicResource LyuDrawer.Dark.CloseIconBrush}" />
                 <Setter Property="CloseButtonHoverBackground" Value="{DynamicResource LyuDrawer.Dark.CloseHoverBackgroundBrush}" />
+                <Setter Property="OverlayBrush" Value="{DynamicResource LyuDrawer.Dark.OverlayBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
