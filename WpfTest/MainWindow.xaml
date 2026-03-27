@@ -557,11 +557,15 @@
             </TabItem>
 
             <TabItem Header="色调">
-                <ikw:SquarePicker
-                    Width="300"
-                    Height="300"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center" />
+                <lyu:SimpleStackPanel VerticalAlignment="Center" Spacing="20">
+                    <ikw:SquarePicker
+                        Width="300"
+                        Height="300"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center" />
+                    <TextBlock HorizontalAlignment="Center" Text="暂无" />
+                </lyu:SimpleStackPanel>
+
             </TabItem>
             <TabItem Header="异常">
                 <Button Click="ThrowError_Click" Content="抛出异常" />
