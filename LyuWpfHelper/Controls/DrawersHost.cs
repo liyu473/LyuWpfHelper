@@ -6,49 +6,49 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
+using System.Windows.Shapes;
 using LyuWpfHelper.Helpers;
 
 namespace LyuWpfHelper.Controls;
 
 [StyleTypedProperty(Property = nameof(ItemContainerStyle), StyleTargetType = typeof(Drawer))]
-[TemplatePart(Name = PartOverlayButton, Type = typeof(Button))]
+[TemplatePart(Name = PartOverlayLayer, Type = typeof(FrameworkElement))]
 public class DrawersHost : ItemsControl
 {
-    private const string PartOverlayButton = "PART_OverlayButton";
+    private const string PartOverlayLayer = "PART_OverlayLayer";
+    private static readonly Brush DefaultOverlayBrush = new SolidColorBrush(Color.FromArgb(0x8C, 0, 0, 0));
+    private static readonly ControlTemplate FallbackTemplate = CreateFallbackTemplate();
 
     private static readonly DependencyPropertyDescriptor? ThemeDescriptor =
         DependencyPropertyDescriptor.FromProperty(WindowThemeHelper.CurrentThemeProperty, typeof(Window));
 
-    private Button? _overlayButton;
+    private FrameworkElement? _overlayLayer;
     private Window? _ownerWindow;
     private LyuWindow? _ownerLyuWindow;
-
-    public static readonly DependencyProperty MainContentProperty = DependencyProperty.Register(
-        nameof(MainContent),
-        typeof(object),
-        typeof(DrawersHost),
-        new PropertyMetadata(null)
-    );
+    private bool _isApplyingFallbackTemplate;
+    private readonly MouseButtonEventHandler _hostPreviewMouseDownHandler;
+    private readonly MouseButtonEventHandler _ownerWindowPreviewMouseDownHandler;
 
     public static readonly DependencyProperty OverlayBrushProperty = DependencyProperty.Register(
         nameof(OverlayBrush),
         typeof(Brush),
         typeof(DrawersHost),
-        new PropertyMetadata(null)
+        new PropertyMetadata(null, OnOverlayVisualPropertyChanged)
     );
 
     public static readonly DependencyProperty OverlayOpacityProperty = DependencyProperty.Register(
         nameof(OverlayOpacity),
         typeof(double),
         typeof(DrawersHost),
-        new PropertyMetadata(0.35d)
+        new PropertyMetadata(1d, OnOverlayVisualPropertyChanged)
     );
 
     public static readonly DependencyProperty OverlayModeProperty = DependencyProperty.Register(
         nameof(OverlayMode),
         typeof(DrawerOverlayMode),
         typeof(DrawersHost),
-        new PropertyMetadata(DrawerOverlayMode.WhenAnyOpen, OnOverlayBehaviorPropertyChanged)
+        new PropertyMetadata(DrawerOverlayMode.ModalOnly, OnOverlayBehaviorPropertyChanged)
     );
 
     public static readonly DependencyProperty OverlayCloseBehaviorProperty =
@@ -100,6 +100,11 @@ public class DrawersHost : ItemsControl
 
     static DrawersHost()
     {
+        if (DefaultOverlayBrush.CanFreeze)
+        {
+            DefaultOverlayBrush.Freeze();
+        }
+
         DefaultStyleKeyProperty.OverrideMetadata(
             typeof(DrawersHost),
             new FrameworkPropertyMetadata(typeof(DrawersHost))
@@ -108,16 +113,29 @@ public class DrawersHost : ItemsControl
 
     public DrawersHost()
     {
+        if (ReadLocalValue(HorizontalAlignmentProperty) == DependencyProperty.UnsetValue)
+        {
+            SetCurrentValue(HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
+        }
+
+        if (ReadLocalValue(VerticalAlignmentProperty) == DependencyProperty.UnsetValue)
+        {
+            SetCurrentValue(VerticalAlignmentProperty, VerticalAlignment.Stretch);
+        }
+
+        if (ReadLocalValue(Panel.ZIndexProperty) == DependencyProperty.UnsetValue)
+        {
+            SetCurrentValue(Panel.ZIndexProperty, int.MaxValue);
+        }
+
+        _hostPreviewMouseDownHandler = OnPreviewMouseDown;
+        _ownerWindowPreviewMouseDownHandler = OwnerWindowPreviewMouseDown;
+
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         AddHandler(Drawer.IsOpenChangedEvent, new RoutedEventHandler(OnDrawerIsOpenChanged));
+        AddHandler(UIElement.PreviewMouseDownEvent, _hostPreviewMouseDownHandler, true);
         PreviewKeyDown += OnPreviewKeyDown;
-    }
-
-    public object? MainContent
-    {
-        get => GetValue(MainContentProperty);
-        set => SetValue(MainContentProperty, value);
     }
 
     public Brush? OverlayBrush
@@ -162,17 +180,16 @@ public class DrawersHost : ItemsControl
 
     public override void OnApplyTemplate()
     {
-        if (_overlayButton is not null)
-        {
-            _overlayButton.Click -= OverlayButtonOnClick;
-        }
-
         base.OnApplyTemplate();
 
-        _overlayButton = GetTemplateChild(PartOverlayButton) as Button;
-        if (_overlayButton is not null)
+        _overlayLayer = GetTemplateChild(PartOverlayLayer) as FrameworkElement;
+        if (_overlayLayer is null && !_isApplyingFallbackTemplate)
         {
-            _overlayButton.Click += OverlayButtonOnClick;
+            _isApplyingFallbackTemplate = true;
+            Template = FallbackTemplate;
+            ApplyTemplate();
+            _isApplyingFallbackTemplate = false;
+            return;
         }
 
         UpdateOverlayState();
@@ -194,6 +211,22 @@ public class DrawersHost : ItemsControl
         UpdateOverlayState();
     }
 
+    protected override Size MeasureOverride(Size constraint)
+    {
+        Size measured = base.MeasureOverride(constraint);
+
+        // Some containers (e.g. TabControl content presenters) can align content to Top/Left.
+        // Returning the available finite size keeps the host stretched so overlay/click area is correct.
+        double width = double.IsInfinity(constraint.Width)
+            ? measured.Width
+            : Math.Max(measured.Width, constraint.Width);
+        double height = double.IsInfinity(constraint.Height)
+            ? measured.Height
+            : Math.Max(measured.Height, constraint.Height);
+
+        return new Size(width, height);
+    }
+
     private static void OnOverlayBehaviorPropertyChanged(
         DependencyObject d,
         DependencyPropertyChangedEventArgs e
@@ -202,6 +235,17 @@ public class DrawersHost : ItemsControl
         if (d is DrawersHost host)
         {
             host.UpdateOverlayState();
+        }
+    }
+
+    private static void OnOverlayVisualPropertyChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is DrawersHost host)
+        {
+            host.UpdateOverlayVisualState();
         }
     }
 
@@ -238,6 +282,11 @@ public class DrawersHost : ItemsControl
         {
             ThemeDescriptor?.AddValueChanged(_ownerWindow, OwnerWindowAttachedThemeChanged);
             _ownerWindow.Closed += OwnerWindowClosed;
+            _ownerWindow.AddHandler(
+                UIElement.PreviewMouseDownEvent,
+                _ownerWindowPreviewMouseDownHandler,
+                true
+            );
         }
     }
 
@@ -253,6 +302,10 @@ public class DrawersHost : ItemsControl
         {
             ThemeDescriptor?.RemoveValueChanged(_ownerWindow, OwnerWindowAttachedThemeChanged);
             _ownerWindow.Closed -= OwnerWindowClosed;
+            _ownerWindow.RemoveHandler(
+                UIElement.PreviewMouseDownEvent,
+                _ownerWindowPreviewMouseDownHandler
+            );
             _ownerWindow = null;
         }
     }
@@ -270,6 +323,27 @@ public class DrawersHost : ItemsControl
     private void OwnerWindowClosed(object? sender, EventArgs e)
     {
         DetachOwnerWindow();
+    }
+
+    private void OwnerWindowPreviewMouseDown(object? sender, MouseButtonEventArgs e)
+    {
+        if (!CloseOnOverlayClick)
+        {
+            return;
+        }
+
+        if (
+            e.OriginalSource is DependencyObject source
+            && IsDescendantOf(source, this)
+        )
+        {
+            return;
+        }
+
+        if (TryCloseByExternalClick(e.ChangedButton))
+        {
+            e.Handled = true;
+        }
     }
 
     private void UpdateActualTheme()
@@ -304,8 +378,7 @@ public class DrawersHost : ItemsControl
             return;
         }
 
-        ReorderZIndices(changedDrawer);
-        UpdateOverlayState();
+        NotifyDrawerStateChanged(changedDrawer);
     }
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -329,42 +402,86 @@ public class DrawersHost : ItemsControl
         e.Handled = true;
     }
 
-    private void OverlayButtonOnClick(object sender, RoutedEventArgs e)
+    private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (!CloseOnOverlayClick)
         {
             return;
         }
 
-        List<Drawer> closable = GetOpenDrawers()
-            .Where(d => IsOverlayParticipant(d) && d.CloseOnOverlayClick && !d.IsPinned)
+        List<Drawer> openDrawers = GetOpenDrawers()
             .OrderByDescending(Panel.GetZIndex)
             .ToList();
 
-        if (closable.Count == 0)
+        if (openDrawers.Count == 0)
         {
             return;
         }
 
-        if (OverlayCloseBehavior == DrawerOverlayCloseBehavior.CloseTopMost)
+        if (
+            e.OriginalSource is DependencyObject source
+            && openDrawers.Any(d => IsDescendantOf(source, d))
+        )
         {
-            closable[0].SetCurrentValue(Drawer.IsOpenProperty, false);
-        }
-        else
-        {
-            foreach (Drawer drawer in closable)
-            {
-                drawer.SetCurrentValue(Drawer.IsOpenProperty, false);
-            }
+            return;
         }
 
-        e.Handled = true;
+        if (TryCloseByExternalClick(e.ChangedButton))
+        {
+            e.Handled = true;
+        }
     }
 
     private void UpdateOverlayState()
     {
         bool hasVisibleOverlay = GetOpenDrawers().Any(IsOverlayParticipant);
         SetValue(HasVisibleOverlayPropertyKey, hasVisibleOverlay);
+        UpdateOverlayVisualState(hasVisibleOverlay);
+    }
+
+    private void UpdateOverlayVisualState(bool? hasVisibleOverlay = null)
+    {
+        if (_overlayLayer is null)
+        {
+            return;
+        }
+
+        bool visible = hasVisibleOverlay ?? HasVisibleOverlay;
+        _overlayLayer.Visibility = visible ? Visibility.Visible : Visibility.Hidden;
+        _overlayLayer.IsHitTestVisible = visible;
+
+        double overlayOpacity = OverlayOpacity;
+        if (double.IsNaN(overlayOpacity))
+        {
+            overlayOpacity = 1d;
+        }
+        else if (overlayOpacity < 0d)
+        {
+            overlayOpacity = 0d;
+        }
+        else if (overlayOpacity > 1d)
+        {
+            overlayOpacity = 1d;
+        }
+
+        _overlayLayer.Opacity = overlayOpacity;
+
+        Brush overlayBrush = OverlayBrush ?? DefaultOverlayBrush;
+        switch (_overlayLayer)
+        {
+            case Shape shape:
+                shape.Fill = overlayBrush;
+                break;
+            case Border border:
+                border.Background = overlayBrush;
+                break;
+            case Control control:
+                control.Background = overlayBrush;
+                break;
+            case Panel panel:
+                panel.Background = overlayBrush;
+                break;
+        }
     }
 
     private bool IsOverlayParticipant(Drawer drawer)
@@ -398,6 +515,86 @@ public class DrawersHost : ItemsControl
         return GetDrawers().Where(d => d.IsOpen);
     }
 
+    private bool TryCloseByExternalClick(MouseButton changedButton)
+    {
+        List<Drawer> closable = GetOpenDrawers()
+            .Where(
+                d =>
+                    d.CloseOnOverlayClick
+                    && !d.IsPinned
+                    && d.ExternalCloseButton == changedButton
+            )
+            .OrderByDescending(Panel.GetZIndex)
+            .ToList();
+
+        if (closable.Count == 0)
+        {
+            return false;
+        }
+
+        if (OverlayCloseBehavior == DrawerOverlayCloseBehavior.CloseTopMost)
+        {
+            closable[0].SetCurrentValue(Drawer.IsOpenProperty, false);
+        }
+        else
+        {
+            foreach (Drawer drawer in closable)
+            {
+                drawer.SetCurrentValue(Drawer.IsOpenProperty, false);
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsDescendantOf(DependencyObject source, DependencyObject ancestor)
+    {
+        DependencyObject? current = source;
+        while (current is not null)
+        {
+            if (ReferenceEquals(current, ancestor))
+            {
+                return true;
+            }
+
+            current = GetParent(current);
+        }
+
+        return false;
+    }
+
+    private static DependencyObject? GetParent(DependencyObject current)
+    {
+        return current switch
+        {
+            Visual => VisualTreeHelper.GetParent(current),
+            Visual3D => VisualTreeHelper.GetParent(current),
+            FrameworkContentElement fce => fce.Parent,
+            _ => LogicalTreeHelper.GetParent(current) as DependencyObject,
+        };
+    }
+
+    private static ControlTemplate CreateFallbackTemplate()
+    {
+        FrameworkElementFactory root = new(typeof(Grid));
+        root.SetValue(UIElement.ClipToBoundsProperty, true);
+
+        FrameworkElementFactory overlayLayer = new(typeof(Rectangle));
+        overlayLayer.SetValue(FrameworkElement.NameProperty, PartOverlayLayer);
+        overlayLayer.SetValue(UIElement.IsHitTestVisibleProperty, false);
+        overlayLayer.SetValue(UIElement.VisibilityProperty, Visibility.Hidden);
+
+        FrameworkElementFactory itemsPresenter = new(typeof(ItemsPresenter));
+
+        root.AppendChild(overlayLayer);
+        root.AppendChild(itemsPresenter);
+
+        return new ControlTemplate(typeof(DrawersHost))
+        {
+            VisualTree = root,
+        };
+    }
+
     private void ReorderZIndices(Drawer lastChanged)
     {
         List<Drawer> openedOthers = GetOpenDrawers()
@@ -415,5 +612,11 @@ public class DrawersHost : ItemsControl
         {
             Panel.SetZIndex(lastChanged, index);
         }
+    }
+
+    internal void NotifyDrawerStateChanged(Drawer changedDrawer)
+    {
+        ReorderZIndices(changedDrawer);
+        UpdateOverlayState();
     }
 }

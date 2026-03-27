@@ -44,9 +44,19 @@ namespace WpfTest
 
                         // 注册 MainWindow
                         services.AddSingleton<MainWindow>();
+
+                        services.AddTransient<BackdropTestWindow>();
                     }
                 )
                 .Build();
+        }
+
+        /// <summary>
+        /// 获取服务实例
+        /// </summary>
+        public static T GetService<T>() where T : notnull
+        {
+            return ((App)Current)._host.Services.GetRequiredService<T>();
         }
 
         protected override async void OnStartup(StartupEventArgs e)

@@ -30,8 +30,6 @@ public partial class MainWindow : LyuWindow
         _notificationService = notificationService;
         _busyService = busyService;
         DataContext = _vm;
-
-        ConfigureDrawerDemoDefaults();
     }
 
     private void TitleBarRefreshButton_Click(object sender, RoutedEventArgs e)
@@ -47,7 +45,7 @@ public partial class MainWindow : LyuWindow
 
     private void OpenBackdropTest_Click(object sender, RoutedEventArgs e)
     {
-        var backdropWindow = new BackdropTestWindow();
+        var backdropWindow = App.GetService<BackdropTestWindow>();
         backdropWindow.Show();
     }
 
@@ -471,162 +469,6 @@ public partial class MainWindow : LyuWindow
         GetDemoDrawerByTag(tag)?.Open();
     }
 
-    private void CloseDemoDrawer_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button button || button.Tag is not string tag)
-        {
-            return;
-        }
-
-        GetDemoDrawerByTag(tag)?.Close();
-    }
-
-    private void CloseAllDemoDrawers_Click(object sender, RoutedEventArgs e)
-    {
-        foreach (Drawer drawer in GetDemoDrawers())
-        {
-            drawer.Close();
-        }
-    }
-
-    private void DrawerOptionChanged(object sender, RoutedEventArgs e)
-    {
-        ApplyDrawerDemoOptions();
-    }
-
-    private void DrawerThemeModeComboBox_SelectionChanged(
-        object sender,
-        SelectionChangedEventArgs e
-    )
-    {
-        ApplyDrawerDemoOptions();
-    }
-
-    private void DrawerOverlayModeComboBox_SelectionChanged(
-        object sender,
-        SelectionChangedEventArgs e
-    )
-    {
-        if (
-            sender is not ComboBox comboBox
-            || comboBox.SelectedItem is not ComboBoxItem selectedItem
-            || selectedItem.Tag is not string tag
-        )
-        {
-            return;
-        }
-
-        if (Enum.TryParse(tag, true, out DrawerOverlayMode mode))
-        {
-            DrawerDemoHost.OverlayMode = mode;
-        }
-    }
-
-    private void DrawerOverlayCloseBehaviorComboBox_SelectionChanged(
-        object sender,
-        SelectionChangedEventArgs e
-    )
-    {
-        if (
-            sender is not ComboBox comboBox
-            || comboBox.SelectedItem is not ComboBoxItem selectedItem
-            || selectedItem.Tag is not string tag
-        )
-        {
-            return;
-        }
-
-        if (Enum.TryParse(tag, true, out DrawerOverlayCloseBehavior behavior))
-        {
-            DrawerDemoHost.OverlayCloseBehavior = behavior;
-        }
-    }
-
-    private void DrawerAutoCloseSlider_ValueChanged(
-        object sender,
-        RoutedPropertyChangedEventArgs<double> e
-    )
-    {
-        ApplyDrawerDemoOptions();
-    }
-
-    private void DrawerHiddenOffsetSlider_ValueChanged(
-        object sender,
-        RoutedPropertyChangedEventArgs<double> e
-    )
-    {
-        ApplyDrawerDemoOptions();
-    }
-
-    private void ConfigureDrawerDemoDefaults()
-    {
-        if (!IsLoaded)
-        {
-            Loaded += MainWindowLoaded;
-            return;
-        }
-
-        ApplyDrawerDemoOptions();
-    }
-
-    private void MainWindowLoaded(object sender, RoutedEventArgs e)
-    {
-        Loaded -= MainWindowLoaded;
-        ApplyDrawerDemoOptions();
-    }
-
-    private void ApplyDrawerDemoOptions()
-    {
-        if (!IsInitialized || DrawerAutoCloseValueText is null)
-        {
-            return;
-        }
-
-        int autoCloseSeconds = (int)Math.Round(DrawerAutoCloseSlider.Value);
-        double hiddenOffset = Math.Round(DrawerHiddenOffsetSlider.Value);
-
-        DrawerAutoCloseValueText.Text = $"{autoCloseSeconds}s";
-
-        bool isPinned = DrawerPinCheckBox.IsChecked == true;
-        bool animate = DrawerAnimateCheckBox.IsChecked == true;
-        bool animateOpacity = DrawerAnimateOpacityCheckBox.IsChecked == true;
-        bool closeOnOverlay = DrawerCloseOnOverlayCheckBox.IsChecked == true;
-        bool closeOnEscape = DrawerCloseOnEscapeCheckBox.IsChecked == true;
-
-        DrawerDemoHost.CloseOnOverlayClick = closeOnOverlay;
-        DrawerDemoHost.CloseOnEscape = closeOnEscape;
-
-        foreach (Drawer drawer in GetDemoDrawers())
-        {
-            drawer.IsPinned = isPinned;
-            drawer.AreAnimationsEnabled = animate;
-            drawer.AnimateOpacity = animateOpacity;
-            drawer.CloseOnOverlayClick = closeOnOverlay;
-            drawer.CloseOnEscape = closeOnEscape;
-            drawer.HiddenOffset = hiddenOffset;
-            drawer.AutoCloseDelay =
-                autoCloseSeconds <= 0 ? TimeSpan.Zero : TimeSpan.FromSeconds(autoCloseSeconds);
-        }
-
-        if (
-            DrawerThemeModeComboBox.SelectedItem is ComboBoxItem selectedThemeItem
-            && selectedThemeItem.Tag is string themeTag
-            && Enum.TryParse(themeTag, true, out DrawerThemeMode themeMode)
-        )
-        {
-            foreach (Drawer drawer in GetDemoDrawers())
-            {
-                drawer.ThemeMode = themeMode;
-            }
-        }
-
-        // Keep at least one non-modal and one modal drawer for OverlayMode demo.
-        LeftDemoDrawer.IsModal = true;
-        RightDemoDrawer.IsModal = true;
-        TopDemoDrawer.IsModal = false;
-        BottomDemoDrawer.IsModal = false;
-    }
-
     private Drawer? GetDemoDrawerByTag(string tag)
     {
         return tag switch
@@ -637,11 +479,6 @@ public partial class MainWindow : LyuWindow
             "Bottom" => BottomDemoDrawer,
             _ => null,
         };
-    }
-
-    private Drawer[] GetDemoDrawers()
-    {
-        return [LeftDemoDrawer, RightDemoDrawer, TopDemoDrawer, BottomDemoDrawer];
     }
 
     protected override void OnThemeChanged(LyuWindowThemeChangedEventArgs e)

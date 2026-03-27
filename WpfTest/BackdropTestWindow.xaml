@@ -17,6 +17,15 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <lyu:DrawersHost Grid.RowSpan="2">
+            <lyu:Drawer
+                x:Name="TestDrawer"
+                CloseOnOverlayClick="True"
+                ExternalCloseButton="Left"
+                IsModal="True"
+                IsPinned="False"
+                ShowOverlay="True" />
+        </lyu:DrawersHost>
 
         <!--  标题栏区域  -->
         <Border
@@ -117,6 +126,15 @@
                             TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
+
+                <lyu:SimpleStackPanel
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="12">
+                    <Button Click="Drawer_Click" Content="抽屉" />
+                    <Button Click="Busy_Click" Content="Busy" />
+                    <Button Click="Noticification_Click" Content="通知" />
+                </lyu:SimpleStackPanel>
             </StackPanel>
         </Grid>
     </Grid>

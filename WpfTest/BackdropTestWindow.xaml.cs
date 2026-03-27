@@ -1,5 +1,8 @@
-﻿using LyuWpfHelper.Helpers;
-using iNKORE.UI.WPF.Modern;
+﻿using iNKORE.UI.WPF.Modern;
+using LyuWpfHelper.Controls;
+using LyuWpfHelper.Extensions;
+using LyuWpfHelper.Helpers;
+using LyuWpfHelper.Services;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -10,9 +13,16 @@ namespace WpfTest;
 /// </summary>
 public partial class BackdropTestWindow : Window
 {
-    public BackdropTestWindow()
+    private readonly INotificationService _notificationService;
+    private readonly IBusyService busyService;
+    public BackdropTestWindow(INotificationService notificationService,IBusyService busy)
     {
         InitializeComponent();
+        _notificationService = notificationService;
+        busyService = busy;
+
+        _notificationService.SetOwnerWindow(this);
+        busyService.SetOwnerWindow(this);
         Loaded += (_, _) => SyncRequestedTheme();
     }
 
@@ -79,5 +89,26 @@ public partial class BackdropTestWindow : Window
         {
             ThemeManager.SetRequestedTheme(this, elementTheme);
         }
+    }
+
+    private void Drawer_Click(object sender, RoutedEventArgs e)
+    {
+        TestDrawer.IsOpen = !TestDrawer.IsOpen;
+    }
+
+    private void Busy_Click(object sender, RoutedEventArgs e)
+    {
+        busyService.Show("正在加载数据，请稍候...", timeout: 3000);
+    }
+
+    private void Noticification_Click(object sender, RoutedEventArgs e)
+    {
+        _notificationService.Show(
+           "警告",
+           "电池电量低",
+           NotificationType.Warning,
+           NotificationPosition.BottomCenter,
+           5
+       );
     }
 }

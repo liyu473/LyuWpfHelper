@@ -9,26 +9,43 @@ using LyuWpfHelper.Helpers;
 
 namespace LyuWpfHelper.Controls;
 
-[TemplatePart(Name = PartRoot, Type = typeof(Border))]
+[TemplatePart(Name = PartRoot, Type = typeof(FrameworkElement))]
+[TemplatePart(Name = PartHeaderContainer, Type = typeof(FrameworkElement))]
 [TemplatePart(Name = PartContentHost, Type = typeof(FrameworkElement))]
 [TemplatePart(Name = PartCloseButton, Type = typeof(Button))]
 public class Drawer : HeaderedContentControl
 {
     private const string PartRoot = "PART_Root";
+    private const string PartHeaderContainer = "PART_HeaderContainer";
     private const string PartContentHost = "PART_ContentHost";
     private const string PartCloseButton = "PART_CloseButton";
+    private const string StateHide = "Hide";
+    private const string StateShow = "Show";
+    private const string StateHideDirect = "HideDirect";
+    private const string StateShowDirect = "ShowDirect";
 
     private static readonly DependencyPropertyDescriptor? ThemeDescriptor =
         DependencyPropertyDescriptor.FromProperty(WindowThemeHelper.CurrentThemeProperty, typeof(Window));
 
-    private Border? _rootElement;
+    private FrameworkElement? _rootElement;
+    private FrameworkElement? _headerContainer;
     private FrameworkElement? _contentHost;
     private Button? _closeButton;
-    private TranslateTransform? _translateTransform;
     private DispatcherTimer? _autoCloseTimer;
     private Window? _ownerWindow;
     private LyuWindow? _ownerLyuWindow;
-    private int _animationVersion;
+    private Storyboard? _showStoryboard;
+    private Storyboard? _hideStoryboard;
+    private SplineDoubleKeyFrame? _hideFrame;
+    private SplineDoubleKeyFrame? _hideFrameY;
+    private SplineDoubleKeyFrame? _showFrame;
+    private SplineDoubleKeyFrame? _showFrameY;
+    private SplineDoubleKeyFrame? _fadeOutFrame;
+    private SplineDoubleKeyFrame? _fadeInFrame;
+    private bool _isSyncingVisibilityState;
+    private bool _isSyncingFocusState;
+    private bool _isSyncingAutoCloseState;
+    private bool _isSyncingThemeState;
 
     public static readonly RoutedEvent IsOpenChangedEvent = EventManager.RegisterRoutedEvent(
         nameof(IsOpenChanged),
@@ -104,14 +121,45 @@ public class Drawer : HeaderedContentControl
         nameof(ShowHeader),
         typeof(bool),
         typeof(Drawer),
-        new PropertyMetadata(true)
+        new PropertyMetadata(true, OnShowHeaderChanged)
     );
 
     public static readonly DependencyProperty ShowCloseButtonProperty = DependencyProperty.Register(
         nameof(ShowCloseButton),
         typeof(bool),
         typeof(Drawer),
-        new PropertyMetadata(true)
+        new PropertyMetadata(true, OnShowCloseButtonChanged)
+    );
+
+    public static readonly DependencyProperty TitleVisibilityProperty = DependencyProperty.Register(
+        nameof(TitleVisibility),
+        typeof(Visibility),
+        typeof(Drawer),
+        new PropertyMetadata(Visibility.Visible, OnTitleVisibilityChanged)
+    );
+
+    public static readonly DependencyProperty CloseButtonVisibilityProperty =
+        DependencyProperty.Register(
+            nameof(CloseButtonVisibility),
+            typeof(Visibility),
+            typeof(Drawer),
+            new PropertyMetadata(Visibility.Visible, OnCloseButtonVisibilityChanged)
+        );
+
+    public static readonly DependencyProperty CloseButtonIsCancelProperty =
+        DependencyProperty.Register(
+            nameof(CloseButtonIsCancel),
+            typeof(bool),
+            typeof(Drawer),
+            new PropertyMetadata(false)
+        );
+
+    public static readonly DependencyProperty ExternalCloseButtonProperty =
+        DependencyProperty.Register(
+            nameof(ExternalCloseButton),
+            typeof(MouseButton),
+            typeof(Drawer),
+            new PropertyMetadata(MouseButton.Left)
     );
 
     public static readonly DependencyProperty CloseOnEscapeProperty = DependencyProperty.Register(
@@ -139,7 +187,7 @@ public class Drawer : HeaderedContentControl
         nameof(AnimateOpacity),
         typeof(bool),
         typeof(Drawer),
-        new PropertyMetadata(true)
+        new FrameworkPropertyMetadata(false, OnAnimateOpacityChanged)
     );
 
     public static readonly DependencyProperty AnimateOnPositionChangeProperty =
@@ -154,7 +202,7 @@ public class Drawer : HeaderedContentControl
         nameof(AnimationDuration),
         typeof(Duration),
         typeof(Drawer),
-        new PropertyMetadata(new Duration(TimeSpan.FromMilliseconds(260)))
+        new PropertyMetadata(new Duration(TimeSpan.FromMilliseconds(260)), OnAnimationDurationChanged)
     );
 
     public static readonly DependencyProperty AutoCloseDelayProperty = DependencyProperty.Register(
@@ -162,6 +210,20 @@ public class Drawer : HeaderedContentControl
         typeof(TimeSpan),
         typeof(Drawer),
         new PropertyMetadata(TimeSpan.Zero, OnAutoCloseDelayChanged)
+    );
+
+    public static readonly DependencyProperty IsAutoCloseEnabledProperty = DependencyProperty.Register(
+        nameof(IsAutoCloseEnabled),
+        typeof(bool),
+        typeof(Drawer),
+        new PropertyMetadata(false, OnIsAutoCloseEnabledChanged)
+    );
+
+    public static readonly DependencyProperty AutoCloseIntervalProperty = DependencyProperty.Register(
+        nameof(AutoCloseInterval),
+        typeof(long),
+        typeof(Drawer),
+        new PropertyMetadata(5000L, OnAutoCloseIntervalChanged)
     );
 
     public static readonly DependencyProperty HiddenOffsetProperty = DependencyProperty.Register(
@@ -175,7 +237,14 @@ public class Drawer : HeaderedContentControl
         nameof(FocusContentOnOpen),
         typeof(bool),
         typeof(Drawer),
-        new PropertyMetadata(true)
+        new PropertyMetadata(true, OnFocusContentOnOpenChanged)
+    );
+
+    public static readonly DependencyProperty AllowFocusElementProperty = DependencyProperty.Register(
+        nameof(AllowFocusElement),
+        typeof(bool),
+        typeof(Drawer),
+        new PropertyMetadata(true, OnAllowFocusElementChanged)
     );
 
     public static readonly DependencyProperty FocusedElementProperty = DependencyProperty.Register(
@@ -190,6 +259,13 @@ public class Drawer : HeaderedContentControl
         typeof(DrawerThemeMode),
         typeof(Drawer),
         new PropertyMetadata(DrawerThemeMode.Adapt, OnThemeModeChanged)
+    );
+
+    public static readonly DependencyProperty ThemeProperty = DependencyProperty.Register(
+        nameof(Theme),
+        typeof(DrawerThemeMode),
+        typeof(Drawer),
+        new PropertyMetadata(DrawerThemeMode.Adapt, OnThemeChanged)
     );
 
     private static readonly DependencyPropertyKey ResolvedThemePropertyKey =
@@ -281,6 +357,7 @@ public class Drawer : HeaderedContentControl
     {
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+        InitializeAutoCloseTimer();
     }
 
     public event RoutedEventHandler IsOpenChanged
@@ -345,6 +422,30 @@ public class Drawer : HeaderedContentControl
         set => SetValue(ShowCloseButtonProperty, value);
     }
 
+    public Visibility TitleVisibility
+    {
+        get => (Visibility)GetValue(TitleVisibilityProperty);
+        set => SetValue(TitleVisibilityProperty, value);
+    }
+
+    public Visibility CloseButtonVisibility
+    {
+        get => (Visibility)GetValue(CloseButtonVisibilityProperty);
+        set => SetValue(CloseButtonVisibilityProperty, value);
+    }
+
+    public bool CloseButtonIsCancel
+    {
+        get => (bool)GetValue(CloseButtonIsCancelProperty);
+        set => SetValue(CloseButtonIsCancelProperty, value);
+    }
+
+    public MouseButton ExternalCloseButton
+    {
+        get => (MouseButton)GetValue(ExternalCloseButtonProperty);
+        set => SetValue(ExternalCloseButtonProperty, value);
+    }
+
     public bool CloseOnEscape
     {
         get => (bool)GetValue(CloseOnEscapeProperty);
@@ -387,6 +488,18 @@ public class Drawer : HeaderedContentControl
         set => SetValue(AutoCloseDelayProperty, value);
     }
 
+    public bool IsAutoCloseEnabled
+    {
+        get => (bool)GetValue(IsAutoCloseEnabledProperty);
+        set => SetValue(IsAutoCloseEnabledProperty, value);
+    }
+
+    public long AutoCloseInterval
+    {
+        get => (long)GetValue(AutoCloseIntervalProperty);
+        set => SetValue(AutoCloseIntervalProperty, value);
+    }
+
     public double HiddenOffset
     {
         get => (double)GetValue(HiddenOffsetProperty);
@@ -399,6 +512,12 @@ public class Drawer : HeaderedContentControl
         set => SetValue(FocusContentOnOpenProperty, value);
     }
 
+    public bool AllowFocusElement
+    {
+        get => (bool)GetValue(AllowFocusElementProperty);
+        set => SetValue(AllowFocusElementProperty, value);
+    }
+
     public FrameworkElement? FocusedElement
     {
         get => (FrameworkElement?)GetValue(FocusedElementProperty);
@@ -409,6 +528,12 @@ public class Drawer : HeaderedContentControl
     {
         get => (DrawerThemeMode)GetValue(ThemeModeProperty);
         set => SetValue(ThemeModeProperty, value);
+    }
+
+    public DrawerThemeMode Theme
+    {
+        get => (DrawerThemeMode)GetValue(ThemeProperty);
+        set => SetValue(ThemeProperty, value);
     }
 
     public WindowThemeMode ResolvedTheme => (WindowThemeMode)GetValue(ResolvedThemeProperty);
@@ -476,7 +601,8 @@ public class Drawer : HeaderedContentControl
 
         base.OnApplyTemplate();
 
-        _rootElement = GetTemplateChild(PartRoot) as Border;
+        _rootElement = GetTemplateChild(PartRoot) as FrameworkElement;
+        _headerContainer = GetTemplateChild(PartHeaderContainer) as FrameworkElement;
         _contentHost = GetTemplateChild(PartContentHost) as FrameworkElement;
         _closeButton = GetTemplateChild(PartCloseButton) as Button;
         if (_closeButton is not null)
@@ -484,17 +610,79 @@ public class Drawer : HeaderedContentControl
             _closeButton.Click += CloseButtonOnClick;
         }
 
-        EnsureTranslateTransform();
+#pragma warning disable WPF0130 // Add [TemplatePart] to the type.
+        _showStoryboard = GetTemplateChild("ShowStoryboard") as Storyboard;
+        _hideStoryboard = GetTemplateChild("HideStoryboard") as Storyboard;
+        _hideFrame = GetTemplateChild("hideFrame") as SplineDoubleKeyFrame;
+        _hideFrameY = GetTemplateChild("hideFrameY") as SplineDoubleKeyFrame;
+        _showFrame = GetTemplateChild("showFrame") as SplineDoubleKeyFrame;
+        _showFrameY = GetTemplateChild("showFrameY") as SplineDoubleKeyFrame;
+        _fadeOutFrame = GetTemplateChild("fadeOutFrame") as SplineDoubleKeyFrame;
+        _fadeInFrame = GetTemplateChild("fadeInFrame") as SplineDoubleKeyFrame;
+#pragma warning restore WPF0130 // Add [TemplatePart] to the type.
+
+        UpdateAnimationDuration();
+        UpdateOpacityChange();
+        ApplyAnimation(Position, AnimateOpacity);
         UpdateResolvedTheme();
-        ApplyState(IsOpen, useTransitions: false, raiseEvents: false);
+
+        _ = VisualStateManager.GoToState(this, IsOpen ? StateShowDirect : StateHideDirect, false);
     }
 
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         base.OnRenderSizeChanged(sizeInfo);
-        if (!IsOpen && (sizeInfo.WidthChanged || sizeInfo.HeightChanged))
+
+        if (!IsOpen)
         {
-            ApplyHiddenState();
+            return;
+        }
+
+        if (!sizeInfo.WidthChanged && !sizeInfo.HeightChanged)
+        {
+            return;
+        }
+
+        if (
+            _rootElement is null
+            || _hideFrame is null
+            || _showFrame is null
+            || _hideFrameY is null
+            || _showFrameY is null
+        )
+        {
+            return;
+        }
+
+        if (Position is DrawerPosition.Left or DrawerPosition.Right)
+        {
+            _showFrame.Value = 0d;
+        }
+
+        if (Position is DrawerPosition.Top or DrawerPosition.Bottom)
+        {
+            _showFrameY.Value = 0d;
+        }
+
+        double width = ResolveWidth();
+        double height = ResolveHeight();
+        double offset = Math.Max(0d, HiddenOffset);
+
+        switch (Position)
+        {
+            default:
+            case DrawerPosition.Left:
+                _hideFrame.Value = -width - Margin.Left - offset;
+                break;
+            case DrawerPosition.Right:
+                _hideFrame.Value = width + Margin.Right + offset;
+                break;
+            case DrawerPosition.Top:
+                _hideFrameY.Value = -height - 1d - Margin.Top - offset;
+                break;
+            case DrawerPosition.Bottom:
+                _hideFrameY.Value = height + Margin.Bottom + offset;
+                break;
         }
     }
 
@@ -512,19 +700,24 @@ public class Drawer : HeaderedContentControl
             return;
         }
 
-        if (!drawer.IsOpen)
+        bool wasOpen = drawer.IsOpen;
+        DrawerPosition newPosition = (DrawerPosition)e.NewValue;
+
+        if (wasOpen && drawer.AnimateOnPositionChange && drawer.AreAnimationsEnabled)
         {
-            drawer.ApplyHiddenState();
-            return;
+            drawer.ApplyAnimation(newPosition, drawer.AnimateOpacity);
+            _ = VisualStateManager.GoToState(drawer, StateHide, true);
+        }
+        else
+        {
+            drawer.ApplyAnimation(newPosition, drawer.AnimateOpacity, false);
         }
 
-        if (!drawer.AreAnimationsEnabled || !drawer.AnimateOnPositionChange)
+        if (wasOpen && drawer.AnimateOnPositionChange && drawer.AreAnimationsEnabled)
         {
-            drawer.ApplyState(isOpen: true, useTransitions: false, raiseEvents: false);
-            return;
+            drawer.ApplyAnimation(newPosition, drawer.AnimateOpacity);
+            _ = VisualStateManager.GoToState(drawer, StateShow, true);
         }
-
-        drawer.ApplyState(isOpen: true, useTransitions: true, raiseEvents: false, startFromHidden: true);
     }
 
     private static void OnIsOpenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -533,10 +726,143 @@ public class Drawer : HeaderedContentControl
         {
             return;
         }
+        Action openedChangedAction = () =>
+        {
+            if (!Equals(e.NewValue, e.OldValue))
+            {
+                drawer.ApplyOpenState((bool)e.NewValue);
+            }
 
-        bool isOpen = (bool)e.NewValue;
-        drawer.RaiseEvent(new RoutedEventArgs(IsOpenChangedEvent, drawer));
-        drawer.ApplyState(isOpen, useTransitions: true, raiseEvents: true);
+            drawer.RaiseEvent(new RoutedEventArgs(IsOpenChangedEvent, drawer));
+            drawer.NotifyOwnerHostStateChanged();
+        };
+
+        _ = drawer.Dispatcher.BeginInvoke(DispatcherPriority.Background, openedChangedAction);
+    }
+
+    private static void OnAnimateOpacityChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is Drawer drawer)
+        {
+            drawer.UpdateOpacityChange();
+            drawer.ApplyAnimation(drawer.Position, drawer.AnimateOpacity, resetShowFrame: false);
+        }
+    }
+
+    private static void OnAnimationDurationChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is Drawer drawer)
+        {
+            drawer.UpdateAnimationDuration();
+        }
+    }
+
+    private static void OnShowHeaderChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is not Drawer drawer || drawer._isSyncingVisibilityState)
+        {
+            return;
+        }
+
+        drawer._isSyncingVisibilityState = true;
+        drawer.SetCurrentValue(
+            TitleVisibilityProperty,
+            (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed
+        );
+        drawer._isSyncingVisibilityState = false;
+    }
+
+    private static void OnShowCloseButtonChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is not Drawer drawer || drawer._isSyncingVisibilityState)
+        {
+            return;
+        }
+
+        drawer._isSyncingVisibilityState = true;
+        drawer.SetCurrentValue(
+            CloseButtonVisibilityProperty,
+            (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed
+        );
+        drawer._isSyncingVisibilityState = false;
+    }
+
+    private static void OnTitleVisibilityChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is not Drawer drawer || drawer._isSyncingVisibilityState)
+        {
+            return;
+        }
+
+        drawer._isSyncingVisibilityState = true;
+        drawer.SetCurrentValue(
+            ShowHeaderProperty,
+            (Visibility)e.NewValue is Visibility.Visible
+        );
+        drawer._isSyncingVisibilityState = false;
+    }
+
+    private static void OnCloseButtonVisibilityChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is not Drawer drawer || drawer._isSyncingVisibilityState)
+        {
+            return;
+        }
+
+        drawer._isSyncingVisibilityState = true;
+        drawer.SetCurrentValue(
+            ShowCloseButtonProperty,
+            (Visibility)e.NewValue is Visibility.Visible
+        );
+        drawer._isSyncingVisibilityState = false;
+    }
+
+    private static void OnFocusContentOnOpenChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is not Drawer drawer || drawer._isSyncingFocusState)
+        {
+            return;
+        }
+
+        drawer._isSyncingFocusState = true;
+        drawer.SetCurrentValue(AllowFocusElementProperty, e.NewValue);
+        drawer._isSyncingFocusState = false;
+    }
+
+    private static void OnAllowFocusElementChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is not Drawer drawer || drawer._isSyncingFocusState)
+        {
+            return;
+        }
+
+        drawer._isSyncingFocusState = true;
+        drawer.SetCurrentValue(FocusContentOnOpenProperty, e.NewValue);
+        drawer._isSyncingFocusState = false;
     }
 
     private static void OnThemeModeChanged(
@@ -546,8 +872,30 @@ public class Drawer : HeaderedContentControl
     {
         if (d is Drawer drawer)
         {
+            if (!drawer._isSyncingThemeState)
+            {
+                drawer._isSyncingThemeState = true;
+                drawer.SetCurrentValue(ThemeProperty, e.NewValue);
+                drawer._isSyncingThemeState = false;
+            }
+
             drawer.UpdateResolvedTheme();
         }
+    }
+
+    private static void OnThemeChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is not Drawer drawer || drawer._isSyncingThemeState)
+        {
+            return;
+        }
+
+        drawer._isSyncingThemeState = true;
+        drawer.SetCurrentValue(ThemeModeProperty, e.NewValue);
+        drawer._isSyncingThemeState = false;
     }
 
     private static void OnOverlayRelevantPropertyChanged(
@@ -558,6 +906,7 @@ public class Drawer : HeaderedContentControl
         if (d is Drawer { IsOpen: true } drawer)
         {
             drawer.RaiseEvent(new RoutedEventArgs(IsOpenChangedEvent, drawer));
+            drawer.NotifyOwnerHostStateChanged();
         }
     }
 
@@ -566,10 +915,93 @@ public class Drawer : HeaderedContentControl
         DependencyPropertyChangedEventArgs e
     )
     {
-        if (d is Drawer drawer)
+        if (d is not Drawer drawer)
         {
-            drawer.ConfigureAutoCloseTimer();
+            return;
         }
+
+        if ((TimeSpan)e.NewValue < TimeSpan.Zero)
+        {
+            drawer.SetCurrentValue(AutoCloseDelayProperty, TimeSpan.Zero);
+            return;
+        }
+
+        if (!drawer._isSyncingAutoCloseState)
+        {
+            drawer._isSyncingAutoCloseState = true;
+            TimeSpan delay = (TimeSpan)e.NewValue;
+            drawer.SetCurrentValue(IsAutoCloseEnabledProperty, delay > TimeSpan.Zero);
+            drawer.SetCurrentValue(
+                AutoCloseIntervalProperty,
+                delay > TimeSpan.Zero ? (long)Math.Max(1d, delay.TotalMilliseconds) : 0L
+            );
+            drawer._isSyncingAutoCloseState = false;
+        }
+
+        Action autoCloseChangedAction = () =>
+        {
+            drawer.InitializeAutoCloseTimer();
+            if (drawer.IsAutoCloseEnabled && drawer.IsOpen)
+            {
+                drawer.StartAutoCloseTimer();
+            }
+        };
+
+        _ = drawer.Dispatcher.BeginInvoke(DispatcherPriority.Background, autoCloseChangedAction);
+    }
+
+    private static void OnIsAutoCloseEnabledChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is not Drawer drawer || drawer._isSyncingAutoCloseState)
+        {
+            return;
+        }
+
+        drawer._isSyncingAutoCloseState = true;
+        bool enabled = (bool)e.NewValue;
+        if (!enabled)
+        {
+            drawer.SetCurrentValue(AutoCloseDelayProperty, TimeSpan.Zero);
+        }
+        else if (drawer.AutoCloseDelay <= TimeSpan.Zero)
+        {
+            long interval = Math.Max(1L, drawer.AutoCloseInterval);
+            drawer.SetCurrentValue(AutoCloseDelayProperty, TimeSpan.FromMilliseconds(interval));
+        }
+        drawer._isSyncingAutoCloseState = false;
+    }
+
+    private static void OnAutoCloseIntervalChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is not Drawer drawer || drawer._isSyncingAutoCloseState)
+        {
+            return;
+        }
+
+        long interval = (long)e.NewValue;
+        if (interval < 0L)
+        {
+            drawer.SetCurrentValue(AutoCloseIntervalProperty, 0L);
+            return;
+        }
+
+        if (!drawer.IsAutoCloseEnabled)
+        {
+            return;
+        }
+
+        drawer._isSyncingAutoCloseState = true;
+        drawer.SetCurrentValue(
+            AutoCloseDelayProperty,
+            interval <= 0L ? TimeSpan.Zero : TimeSpan.FromMilliseconds(interval)
+        );
+        drawer._isSyncingAutoCloseState = false;
     }
 
     private static void OnHiddenOffsetChanged(
@@ -588,24 +1020,36 @@ public class Drawer : HeaderedContentControl
             return;
         }
 
-        if (!drawer.IsOpen)
-        {
-            drawer.ApplyHiddenState();
-        }
+        drawer.ApplyAnimation(drawer.Position, drawer.AnimateOpacity, resetShowFrame: !drawer.IsOpen);
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         AttachOwnerWindow();
         UpdateResolvedTheme();
-        ConfigureAutoCloseTimer();
-        ApplyState(IsOpen, useTransitions: false, raiseEvents: false);
+        ApplyAnimation(Position, AnimateOpacity);
+        NotifyOwnerHostStateChanged();
+
+        if (IsOpen && IsAutoCloseEnabled)
+        {
+            StartAutoCloseTimer();
+        }
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         DetachOwnerWindow();
         StopAutoCloseTimer();
+
+        if (_showStoryboard is not null)
+        {
+            _showStoryboard.Completed -= ShowStoryboardCompleted;
+        }
+
+        if (_hideStoryboard is not null)
+        {
+            _hideStoryboard.Completed -= HideStoryboardCompleted;
+        }
     }
 
     private void AttachOwnerWindow()
@@ -703,49 +1147,45 @@ public class Drawer : HeaderedContentControl
         return WindowThemeMode.Light;
     }
 
-    private void ConfigureAutoCloseTimer()
+    private void InitializeAutoCloseTimer()
     {
-        StopAutoCloseTimer();
-
-        if (AutoCloseDelay <= TimeSpan.Zero)
-        {
-            return;
-        }
-
-        _autoCloseTimer ??= new DispatcherTimer(DispatcherPriority.Normal, Dispatcher)
-        {
-            IsEnabled = false,
-        };
+        _autoCloseTimer ??= new DispatcherTimer(DispatcherPriority.Normal, Dispatcher);
         _autoCloseTimer.Tick -= AutoCloseTimerOnTick;
         _autoCloseTimer.Tick += AutoCloseTimerOnTick;
-        _autoCloseTimer.Interval = AutoCloseDelay;
-
-        if (IsOpen)
-        {
-            StartAutoCloseTimer();
-        }
+        _autoCloseTimer.Interval = AutoCloseDelay > TimeSpan.Zero
+            ? AutoCloseDelay
+            : TimeSpan.FromMilliseconds(1);
     }
 
     private void StartAutoCloseTimer()
     {
-        if (_autoCloseTimer is null || AutoCloseDelay <= TimeSpan.Zero)
+        if (_autoCloseTimer is null || !IsAutoCloseEnabled)
+        {
+            return;
+        }
+
+        if (DesignerProperties.GetIsInDesignMode(this))
         {
             return;
         }
 
         _autoCloseTimer.Stop();
+        _autoCloseTimer.Interval = AutoCloseDelay;
         _autoCloseTimer.Start();
     }
 
     private void StopAutoCloseTimer()
     {
-        _autoCloseTimer?.Stop();
+        if (_autoCloseTimer is not null && _autoCloseTimer.IsEnabled)
+        {
+            _autoCloseTimer.Stop();
+        }
     }
 
     private void AutoCloseTimerOnTick(object? sender, EventArgs e)
     {
         StopAutoCloseTimer();
-        if (IsOpen)
+        if (IsOpen && IsAutoCloseEnabled)
         {
             SetCurrentValue(IsOpenProperty, false);
         }
@@ -771,135 +1211,314 @@ public class Drawer : HeaderedContentControl
         }
     }
 
-    private void ApplyState(
-        bool isOpen,
-        bool useTransitions,
-        bool raiseEvents,
-        bool startFromHidden = false
-    )
+    private void ApplyOpenState(bool isOpen)
     {
         if (_rootElement is null)
         {
-            Visibility = isOpen ? Visibility.Visible : Visibility.Collapsed;
+            Visibility = isOpen ? Visibility.Visible : Visibility.Hidden;
             SetValue(IsShownPropertyKey, isOpen);
+            RaiseEvent(new RoutedEventArgs(isOpen ? OpenedEvent : ClosedEvent, this));
             return;
         }
 
-        EnsureTranslateTransform();
-        if (_translateTransform is null)
+        if (AreAnimationsEnabled)
         {
+            if (isOpen)
+            {
+                if (_hideStoryboard is not null)
+                {
+                    _hideStoryboard.Completed -= HideStoryboardCompleted;
+                }
+
+                Visibility = Visibility.Visible;
+                ApplyAnimation(Position, AnimateOpacity);
+                TryFocusDrawer();
+
+                if (_showStoryboard is not null)
+                {
+                    _showStoryboard.Completed -= ShowStoryboardCompleted;
+                    _showStoryboard.Completed += ShowStoryboardCompleted;
+                }
+                else
+                {
+                    Shown();
+                }
+
+                if (IsAutoCloseEnabled)
+                {
+                    StartAutoCloseTimer();
+                }
+            }
+            else
+            {
+                if (_showStoryboard is not null)
+                {
+                    _showStoryboard.Completed -= ShowStoryboardCompleted;
+                }
+
+                StopAutoCloseTimer();
+                SetValue(IsShownPropertyKey, false);
+
+                if (_hideStoryboard is not null)
+                {
+                    _hideStoryboard.Completed -= HideStoryboardCompleted;
+                    _hideStoryboard.Completed += HideStoryboardCompleted;
+                }
+                else
+                {
+                    Hide();
+                }
+            }
+
+            _ = VisualStateManager.GoToState(this, isOpen ? StateShow : StateHide, true);
             return;
         }
 
         if (isOpen)
         {
-            StopCurrentAnimations();
-
-            if (startFromHidden || Visibility is not Visibility.Visible)
-            {
-                (double hiddenX, double hiddenY) = GetHiddenPosition();
-                _translateTransform.X = hiddenX;
-                _translateTransform.Y = hiddenY;
-                _rootElement.Opacity = AnimateOpacity ? 0d : 1d;
-            }
-
             Visibility = Visibility.Visible;
+            TryFocusDrawer();
+            Shown();
+
+            if (IsAutoCloseEnabled)
+            {
+                StartAutoCloseTimer();
+            }
+        }
+        else
+        {
+            StopAutoCloseTimer();
             SetValue(IsShownPropertyKey, false);
+            Hide();
+        }
 
-            if (!AreAnimationsEnabled || !useTransitions)
+        _ = VisualStateManager.GoToState(this, isOpen ? StateShowDirect : StateHideDirect, true);
+    }
+
+    private void UpdateAnimationDuration()
+    {
+        TimeSpan duration = ResolveDuration();
+        KeyTime keyTime = KeyTime.FromTimeSpan(duration);
+
+        if (_hideFrame is not null)
+        {
+            _hideFrame.KeyTime = keyTime;
+        }
+
+        if (_hideFrameY is not null)
+        {
+            _hideFrameY.KeyTime = keyTime;
+        }
+
+        if (_showFrame is not null)
+        {
+            _showFrame.KeyTime = keyTime;
+        }
+
+        if (_showFrameY is not null)
+        {
+            _showFrameY.KeyTime = keyTime;
+        }
+
+        if (_fadeOutFrame is not null)
+        {
+            _fadeOutFrame.KeyTime = keyTime;
+        }
+
+        if (_fadeInFrame is not null)
+        {
+            _fadeInFrame.KeyTime = keyTime;
+        }
+    }
+
+    private void NotifyOwnerHostStateChanged()
+    {
+        DrawersHost? ownerHost = TryFindParentHost(this);
+        ownerHost?.NotifyDrawerStateChanged(this);
+    }
+
+    private static DrawersHost? TryFindParentHost(DependencyObject start)
+    {
+        DependencyObject? current = start;
+        while (current is not null)
+        {
+            if (current is DrawersHost host)
             {
-                _translateTransform.X = 0d;
-                _translateTransform.Y = 0d;
-                _rootElement.Opacity = 1d;
-                SetValue(IsShownPropertyKey, true);
-                if (raiseEvents)
+                return host;
+            }
+
+            current = current switch
+            {
+                Visual => VisualTreeHelper.GetParent(current),
+                FrameworkContentElement fce => fce.Parent,
+                _ => LogicalTreeHelper.GetParent(current) as DependencyObject,
+            };
+        }
+
+        return null;
+    }
+
+    private void UpdateOpacityChange()
+    {
+        if (_rootElement is null || _fadeOutFrame is null)
+        {
+            return;
+        }
+
+        if (!AnimateOpacity)
+        {
+            _fadeOutFrame.Value = 1d;
+            _rootElement.Opacity = 1d;
+        }
+        else
+        {
+            _fadeOutFrame.Value = 0d;
+            if (!IsOpen)
+            {
+                _rootElement.Opacity = 0d;
+            }
+        }
+    }
+
+    private void HideStoryboardCompleted(object? sender, EventArgs e)
+    {
+        if (_hideStoryboard is not null)
+        {
+            _hideStoryboard.Completed -= HideStoryboardCompleted;
+        }
+
+        Hide();
+    }
+
+    private void ShowStoryboardCompleted(object? sender, EventArgs e)
+    {
+        if (_showStoryboard is not null)
+        {
+            _showStoryboard.Completed -= ShowStoryboardCompleted;
+        }
+
+        Shown();
+    }
+
+    private void Hide()
+    {
+        // Keep Hidden (instead of Collapsed) to preserve measure size for first open animation.
+        Visibility = Visibility.Hidden;
+        RaiseEvent(new RoutedEventArgs(ClosedEvent, this));
+    }
+
+    private void Shown()
+    {
+        SetValue(IsShownPropertyKey, true);
+        RaiseEvent(new RoutedEventArgs(OpenedEvent, this));
+    }
+
+    internal void ApplyAnimation(
+        DrawerPosition position,
+        bool animateOpacity,
+        bool resetShowFrame = true
+    )
+    {
+        if (
+            _rootElement is null
+            || _hideFrame is null
+            || _showFrame is null
+            || _hideFrameY is null
+            || _showFrameY is null
+            || _fadeOutFrame is null
+        )
+        {
+            return;
+        }
+
+        double width = ResolveWidth();
+        double height = ResolveHeight();
+        double offset = Math.Max(0d, HiddenOffset);
+
+        if (position is DrawerPosition.Left or DrawerPosition.Right)
+        {
+            _showFrame.Value = 0d;
+        }
+
+        if (position is DrawerPosition.Top or DrawerPosition.Bottom)
+        {
+            _showFrameY.Value = 0d;
+        }
+
+        if (!animateOpacity)
+        {
+            _fadeOutFrame.Value = 1d;
+            _rootElement.Opacity = 1d;
+        }
+        else
+        {
+            _fadeOutFrame.Value = 0d;
+            if (!IsOpen)
+            {
+                _rootElement.Opacity = 0d;
+            }
+        }
+
+        switch (position)
+        {
+            default:
+            case DrawerPosition.Left:
+                HorizontalAlignment =
+                    Margin.Right <= 0d
+                        ? HorizontalContentAlignment != HorizontalAlignment.Stretch
+                            ? HorizontalAlignment.Left
+                            : HorizontalContentAlignment
+                        : HorizontalAlignment.Stretch;
+                VerticalAlignment = VerticalAlignment.Stretch;
+                _hideFrame.Value = -width - Margin.Left - offset;
+                if (resetShowFrame)
                 {
-                    RaiseEvent(new RoutedEventArgs(OpenedEvent, this));
+                    _rootElement.RenderTransform = new TranslateTransform(-width - offset, 0d);
                 }
-            }
-            else
-            {
-                AnimateTo(0d, 0d, 1d, () =>
+                break;
+            case DrawerPosition.Right:
+                HorizontalAlignment =
+                    Margin.Left <= 0d
+                        ? HorizontalContentAlignment != HorizontalAlignment.Stretch
+                            ? HorizontalAlignment.Right
+                            : HorizontalContentAlignment
+                        : HorizontalAlignment.Stretch;
+                VerticalAlignment = VerticalAlignment.Stretch;
+                _hideFrame.Value = width + Margin.Right + offset;
+                if (resetShowFrame)
                 {
-                    SetValue(IsShownPropertyKey, true);
-                    if (raiseEvents)
-                    {
-                        RaiseEvent(new RoutedEventArgs(OpenedEvent, this));
-                    }
-                });
-            }
-
-            if (FocusContentOnOpen)
-            {
-                _ = Dispatcher.BeginInvoke(TryFocusDrawer, DispatcherPriority.Input);
-            }
-
-            StartAutoCloseTimer();
-            return;
+                    _rootElement.RenderTransform = new TranslateTransform(width + offset, 0d);
+                }
+                break;
+            case DrawerPosition.Top:
+                HorizontalAlignment = HorizontalAlignment.Stretch;
+                VerticalAlignment =
+                    Margin.Bottom <= 0d
+                        ? VerticalContentAlignment != VerticalAlignment.Stretch
+                            ? VerticalAlignment.Top
+                            : VerticalContentAlignment
+                        : VerticalAlignment.Stretch;
+                _hideFrameY.Value = -height - 1d - Margin.Top - offset;
+                if (resetShowFrame)
+                {
+                    _rootElement.RenderTransform = new TranslateTransform(0d, -height - 1d - offset);
+                }
+                break;
+            case DrawerPosition.Bottom:
+                HorizontalAlignment = HorizontalAlignment.Stretch;
+                VerticalAlignment =
+                    Margin.Top <= 0d
+                        ? VerticalContentAlignment != VerticalAlignment.Stretch
+                            ? VerticalAlignment.Bottom
+                            : VerticalContentAlignment
+                        : VerticalAlignment.Stretch;
+                _hideFrameY.Value = height + Margin.Bottom + offset;
+                if (resetShowFrame)
+                {
+                    _rootElement.RenderTransform = new TranslateTransform(0d, height + offset);
+                }
+                break;
         }
-
-        StopAutoCloseTimer();
-        StopCurrentAnimations();
-        SetValue(IsShownPropertyKey, false);
-
-        (double targetX, double targetY) = GetHiddenPosition();
-        double targetOpacity = AnimateOpacity ? 0d : 1d;
-
-        if (!AreAnimationsEnabled || !useTransitions)
-        {
-            _translateTransform.X = targetX;
-            _translateTransform.Y = targetY;
-            _rootElement.Opacity = targetOpacity;
-            Visibility = Visibility.Collapsed;
-            if (raiseEvents)
-            {
-                RaiseEvent(new RoutedEventArgs(ClosedEvent, this));
-            }
-            return;
-        }
-
-        AnimateTo(targetX, targetY, targetOpacity, () =>
-        {
-            Visibility = Visibility.Collapsed;
-            if (raiseEvents)
-            {
-                RaiseEvent(new RoutedEventArgs(ClosedEvent, this));
-            }
-        });
-    }
-
-    private void ApplyHiddenState()
-    {
-        if (_rootElement is null)
-        {
-            return;
-        }
-
-        EnsureTranslateTransform();
-        if (_translateTransform is null)
-        {
-            return;
-        }
-
-        (double x, double y) = GetHiddenPosition();
-        _translateTransform.X = x;
-        _translateTransform.Y = y;
-        _rootElement.Opacity = AnimateOpacity ? 0d : 1d;
-        Visibility = Visibility.Collapsed;
-        SetValue(IsShownPropertyKey, false);
-    }
-
-    private (double X, double Y) GetHiddenPosition()
-    {
-        double extraOffset = Math.Max(0d, HiddenOffset);
-        return Position switch
-        {
-            DrawerPosition.Left => (-(ResolveWidth() + extraOffset), 0d),
-            DrawerPosition.Right => (ResolveWidth() + extraOffset, 0d),
-            DrawerPosition.Top => (0d, -(ResolveHeight() + extraOffset)),
-            DrawerPosition.Bottom => (0d, ResolveHeight() + extraOffset),
-            _ => (ResolveWidth() + extraOffset, 0d),
-        };
     }
 
     private double ResolveWidth()
@@ -939,86 +1558,8 @@ public class Drawer : HeaderedContentControl
             return Height;
         }
 
-        return 280d;
+        return 260d;
     }
-
-    private void AnimateTo(double x, double y, double opacity, Action completed)
-    {
-        if (_rootElement is null || _translateTransform is null)
-        {
-            completed();
-            return;
-        }
-
-        TimeSpan duration = ResolveDuration();
-        if (duration <= TimeSpan.Zero)
-        {
-            _translateTransform.X = x;
-            _translateTransform.Y = y;
-            _rootElement.Opacity = opacity;
-            completed();
-            return;
-        }
-
-        var easing = new CubicEase { EasingMode = EasingMode.EaseOut };
-        int version = ++_animationVersion;
-
-        DoubleAnimation xAnimation = CreateAnimation(x, duration, easing);
-        DoubleAnimation yAnimation = CreateAnimation(y, duration, easing);
-
-        DoubleAnimation completionAnimation =
-            Position is DrawerPosition.Left or DrawerPosition.Right ? xAnimation : yAnimation;
-        completionAnimation.Completed += (_, _) =>
-        {
-            if (version != _animationVersion)
-            {
-                return;
-            }
-
-            _translateTransform.X = x;
-            _translateTransform.Y = y;
-            _rootElement.Opacity = opacity;
-            completed();
-        };
-
-        _translateTransform.BeginAnimation(
-            TranslateTransform.XProperty,
-            xAnimation,
-            HandoffBehavior.SnapshotAndReplace
-        );
-        _translateTransform.BeginAnimation(
-            TranslateTransform.YProperty,
-            yAnimation,
-            HandoffBehavior.SnapshotAndReplace
-        );
-
-        if (AnimateOpacity)
-        {
-            DoubleAnimation opacityAnimation = CreateAnimation(opacity, duration, easing);
-            _rootElement.BeginAnimation(
-                OpacityProperty,
-                opacityAnimation,
-                HandoffBehavior.SnapshotAndReplace
-            );
-        }
-        else
-        {
-            _rootElement.Opacity = 1d;
-        }
-    }
-
-    private static DoubleAnimation CreateAnimation(
-        double target,
-        TimeSpan duration,
-        IEasingFunction easing
-    ) =>
-        new()
-        {
-            To = target,
-            Duration = duration,
-            EasingFunction = easing,
-            FillBehavior = FillBehavior.Stop,
-        };
 
     private TimeSpan ResolveDuration()
     {
@@ -1035,49 +1576,9 @@ public class Drawer : HeaderedContentControl
         return AnimationDuration.TimeSpan;
     }
 
-    private void StopCurrentAnimations()
-    {
-        _animationVersion++;
-
-        EnsureTranslateTransform();
-        if (_translateTransform is not null && !_translateTransform.IsFrozen)
-        {
-            _translateTransform.BeginAnimation(TranslateTransform.XProperty, null);
-            _translateTransform.BeginAnimation(TranslateTransform.YProperty, null);
-        }
-
-        _rootElement?.BeginAnimation(OpacityProperty, null);
-    }
-
-    private void EnsureTranslateTransform()
-    {
-        if (_rootElement is null)
-        {
-            return;
-        }
-
-        if (_rootElement.RenderTransform is TranslateTransform transform)
-        {
-            // WPF may provide a frozen transform instance from template internals.
-            // Clone to a mutable instance before writing/animating X/Y.
-            if (transform.IsFrozen)
-            {
-                _translateTransform = transform.CloneCurrentValue();
-                _rootElement.RenderTransform = _translateTransform;
-                return;
-            }
-
-            _translateTransform = transform;
-            return;
-        }
-
-        _translateTransform = new TranslateTransform();
-        _rootElement.RenderTransform = _translateTransform;
-    }
-
     private void TryFocusDrawer()
     {
-        if (!IsOpen || !IsVisible)
+        if (!AllowFocusElement)
         {
             return;
         }
@@ -1090,11 +1591,11 @@ public class Drawer : HeaderedContentControl
             return;
         }
 
-        if (_contentHost is null)
+        if (_contentHost is not null && _contentHost.MoveFocus(new TraversalRequest(FocusNavigationDirection.First)))
         {
             return;
         }
 
-        _ = _contentHost.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+        _ = _headerContainer?.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
     }
 }
