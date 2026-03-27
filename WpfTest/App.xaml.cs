@@ -37,6 +37,7 @@ namespace WpfTest
 
                         // 注册 LyuWpfHelper 服务
                         services.AddLyuNotificationService();
+                        services.AddLyuBusyService();
 
                         // 注册 ViewModel
                         services.AddSingleton<MainViewModel>();

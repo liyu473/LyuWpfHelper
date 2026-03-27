@@ -455,6 +455,330 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="Busy蒙版">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <lyu:SimpleStackPanel
+                        Margin="20"
+                        Orientation="Vertical"
+                        Spacing="16">
+                        <lyu:SimpleStackPanel Orientation="Horizontal" Spacing="12">
+                            <Button
+                                Width="180"
+                                Height="35"
+                                Click="ShowDefaultBusy_Click"
+                                Content="Default Busy" />
+                            <Button
+                                Width="180"
+                                Height="35"
+                                Click="ShowTaskBusy_Click"
+                                Content="长时任务 Busy(超时cancel)" />
+                            <Button
+                                Width="180"
+                                Height="35"
+                                Click="ShowTaskBusywithoutTimeout_Click"
+                                Content="长时任务 Busy(无超时)" />
+                            <Button
+                                Width="180"
+                                Height="35"
+                                Click="ShowCustomBusy_Click"
+                                Content="自定义 Busy" />
+                        </lyu:SimpleStackPanel>
+                    </lyu:SimpleStackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="抽屉">
+                <lyu:DrawersHost
+                    x:Name="DrawerDemoHost"
+                    Margin="16"
+                    OverlayCloseBehavior="CloseTopMost"
+                    OverlayMode="WhenAnyOpen">
+                    <lyu:DrawersHost.MainContent>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <lyu:SimpleStackPanel Orientation="Vertical" Spacing="16">
+                                <Border
+                                    Padding="16"
+                                    Background="#09FFFFFF"
+                                    BorderBrush="#20000000"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                    <lyu:SimpleStackPanel Orientation="Vertical" Spacing="12">
+                                        <TextBlock
+                                            FontSize="16"
+                                            FontWeight="SemiBold"
+                                            Text="Drawer 控件演示（支持主题联动）" />
+                                        <WrapPanel>
+                                            <Button
+                                                Width="120"
+                                                Margin="0,0,8,8"
+                                                Click="OpenDemoDrawer_Click"
+                                                Content="打开左抽屉"
+                                                Tag="Left" />
+                                            <Button
+                                                Width="120"
+                                                Margin="0,0,8,8"
+                                                Click="OpenDemoDrawer_Click"
+                                                Content="打开右抽屉"
+                                                Tag="Right" />
+                                            <Button
+                                                Width="120"
+                                                Margin="0,0,8,8"
+                                                Click="OpenDemoDrawer_Click"
+                                                Content="打开上抽屉"
+                                                Tag="Top" />
+                                            <Button
+                                                Width="120"
+                                                Margin="0,0,8,8"
+                                                Click="OpenDemoDrawer_Click"
+                                                Content="打开下抽屉"
+                                                Tag="Bottom" />
+                                            <Button
+                                                Width="120"
+                                                Margin="0,0,8,8"
+                                                Click="CloseAllDemoDrawers_Click"
+                                                Content="关闭全部" />
+                                        </WrapPanel>
+
+                                        <WrapPanel>
+                                            <CheckBox
+                                                x:Name="DrawerPinCheckBox"
+                                                Margin="0,0,14,8"
+                                                Checked="DrawerOptionChanged"
+                                                Content="固定抽屉（禁止外部点击关闭）"
+                                                Unchecked="DrawerOptionChanged" />
+                                            <CheckBox
+                                                x:Name="DrawerAnimateCheckBox"
+                                                Margin="0,0,14,8"
+                                                Checked="DrawerOptionChanged"
+                                                Content="启用动画"
+                                                IsChecked="True"
+                                                Unchecked="DrawerOptionChanged" />
+                                            <CheckBox
+                                                x:Name="DrawerAnimateOpacityCheckBox"
+                                                Margin="0,0,14,8"
+                                                Checked="DrawerOptionChanged"
+                                                Content="透明度动画"
+                                                IsChecked="True"
+                                                Unchecked="DrawerOptionChanged" />
+                                            <CheckBox
+                                                x:Name="DrawerCloseOnOverlayCheckBox"
+                                                Margin="0,0,14,8"
+                                                Checked="DrawerOptionChanged"
+                                                Content="允许遮罩点击关闭"
+                                                IsChecked="True"
+                                                Unchecked="DrawerOptionChanged" />
+                                            <CheckBox
+                                                x:Name="DrawerCloseOnEscapeCheckBox"
+                                                Margin="0,0,14,8"
+                                                Checked="DrawerOptionChanged"
+                                                Content="允许 ESC 关闭"
+                                                IsChecked="True"
+                                                Unchecked="DrawerOptionChanged" />
+                                        </WrapPanel>
+
+                                        <WrapPanel VerticalAlignment="Center">
+                                            <TextBlock
+                                                Margin="0,0,8,8"
+                                                VerticalAlignment="Center"
+                                                Text="主题模式：" />
+                                            <ComboBox
+                                                x:Name="DrawerThemeModeComboBox"
+                                                Width="130"
+                                                Margin="0,0,20,8"
+                                                SelectedIndex="0"
+                                                SelectionChanged="DrawerThemeModeComboBox_SelectionChanged">
+                                                <ComboBoxItem Tag="Adapt">Adapt</ComboBoxItem>
+                                                <ComboBoxItem Tag="Light">Light</ComboBoxItem>
+                                                <ComboBoxItem Tag="Dark">Dark</ComboBoxItem>
+                                                <ComboBoxItem Tag="Inverse">Inverse</ComboBoxItem>
+                                            </ComboBox>
+
+                                            <TextBlock
+                                                Margin="0,0,8,8"
+                                                VerticalAlignment="Center"
+                                                Text="遮罩模式：" />
+                                            <ComboBox
+                                                x:Name="DrawerOverlayModeComboBox"
+                                                Width="140"
+                                                Margin="0,0,20,8"
+                                                SelectedIndex="0"
+                                                SelectionChanged="DrawerOverlayModeComboBox_SelectionChanged">
+                                                <ComboBoxItem Tag="WhenAnyOpen">任意打开即遮罩</ComboBoxItem>
+                                                <ComboBoxItem Tag="ModalOnly">仅 Modal 抽屉遮罩</ComboBoxItem>
+                                            </ComboBox>
+
+                                            <TextBlock
+                                                Margin="0,0,8,8"
+                                                VerticalAlignment="Center"
+                                                Text="遮罩关闭策略：" />
+                                            <ComboBox
+                                                x:Name="DrawerOverlayCloseBehaviorComboBox"
+                                                Width="150"
+                                                Margin="0,0,20,8"
+                                                SelectedIndex="0"
+                                                SelectionChanged="DrawerOverlayCloseBehaviorComboBox_SelectionChanged">
+                                                <ComboBoxItem Tag="CloseTopMost">只关顶层</ComboBoxItem>
+                                                <ComboBoxItem Tag="CloseAllClosable">关闭全部可关闭抽屉</ComboBoxItem>
+                                            </ComboBox>
+                                        </WrapPanel>
+
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="220" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="120" />
+                                                <ColumnDefinition Width="50" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                Grid.Column="0"
+                                                Margin="0,0,8,0"
+                                                VerticalAlignment="Center"
+                                                Text="自动关闭(秒)：" />
+                                            <Slider
+                                                x:Name="DrawerAutoCloseSlider"
+                                                Grid.Column="1"
+                                                IsSnapToTickEnabled="True"
+                                                Maximum="10"
+                                                TickFrequency="1"
+                                                ValueChanged="DrawerAutoCloseSlider_ValueChanged" />
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                Margin="12,0,8,0"
+                                                VerticalAlignment="Center"
+                                                Text="隐藏偏移：" />
+                                            <Slider
+                                                x:Name="DrawerHiddenOffsetSlider"
+                                                Grid.Column="3"
+                                                IsSnapToTickEnabled="True"
+                                                Maximum="120"
+                                                TickFrequency="10"
+                                                ValueChanged="DrawerHiddenOffsetSlider_ValueChanged" />
+                                            <TextBlock
+                                                x:Name="DrawerAutoCloseValueText"
+                                                Grid.Column="4"
+                                                VerticalAlignment="Center"
+                                                Text="0s" />
+                                        </Grid>
+                                    </lyu:SimpleStackPanel>
+                                </Border>
+
+                                <Border
+                                    Height="440"
+                                    Padding="16"
+                                    Background="#08FFFFFF"
+                                    BorderBrush="#20000000"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                    <lyu:SimpleStackPanel Orientation="Vertical" Spacing="8">
+                                        <TextBlock
+                                            FontSize="15"
+                                            FontWeight="SemiBold"
+                                            Text="主内容区域" />
+                                        <TextBlock Text="你可以在这个区域继续交互，打开不同方向抽屉，并尝试切换窗口主题（浅色/深色/跟随系统）。" TextWrapping="Wrap" />
+                                        <TextBlock Text="当前设计点：" />
+                                        <TextBlock Text="1. 支持四方向打开，默认带位移动画和透明度动画。" />
+                                        <TextBlock Text="2. 支持遮罩策略、ESC 关闭、外部点击关闭、固定抽屉等行为配置。" />
+                                        <TextBlock Text="3. 支持抽屉主题模式 Adapt/Light/Dark/Inverse，并跟随窗口主题切换。" />
+                                    </lyu:SimpleStackPanel>
+                                </Border>
+                            </lyu:SimpleStackPanel>
+                        </ScrollViewer>
+                    </lyu:DrawersHost.MainContent>
+
+                    <lyu:Drawer
+                        x:Name="LeftDemoDrawer"
+                        Width="340"
+                        CornerRadius="0,12,12,0"
+                        Header="左侧抽屉"
+                        Position="Left">
+                        <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
+                            <TextBlock
+                                FontSize="15"
+                                FontWeight="SemiBold"
+                                Text="筛选与导航" />
+                            <TextBlock Text="适合放菜单、筛选器、目录树等内容。" TextWrapping="Wrap" />
+                            <CheckBox Content="启用高级筛选" />
+                            <CheckBox Content="仅显示已完成项" />
+                            <Button
+                                Click="CloseDemoDrawer_Click"
+                                Content="关闭当前抽屉"
+                                Tag="Left" />
+                        </lyu:SimpleStackPanel>
+                    </lyu:Drawer>
+
+                    <lyu:Drawer
+                        x:Name="RightDemoDrawer"
+                        Width="380"
+                        CornerRadius="12,0,0,12"
+                        Header="右侧抽屉"
+                        Position="Right">
+                        <lyu:SimpleStackPanel Orientation="Vertical" Spacing="10">
+                            <TextBlock
+                                FontSize="15"
+                                FontWeight="SemiBold"
+                                Text="详情面板" />
+                            <TextBlock Text="适合放属性编辑器、详情预览、设置项。" TextWrapping="Wrap" />
+                            <TextBlock Text="项目名称" />
+                            <TextBox />
+                            <TextBlock Text="备注" />
+                            <TextBox
+                                Height="120"
+                                AcceptsReturn="True"
+                                TextWrapping="Wrap" />
+                            <Button
+                                Click="CloseDemoDrawer_Click"
+                                Content="关闭当前抽屉"
+                                Tag="Right" />
+                        </lyu:SimpleStackPanel>
+                    </lyu:Drawer>
+
+                    <lyu:Drawer
+                        x:Name="TopDemoDrawer"
+                        Height="220"
+                        CornerRadius="0,0,12,12"
+                        Header="顶部抽屉"
+                        Position="Top">
+                        <lyu:SimpleStackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Content="批量操作 A" />
+                            <Button Content="批量操作 B" />
+                            <Button Content="批量操作 C" />
+                            <Button
+                                Click="CloseDemoDrawer_Click"
+                                Content="关闭顶部抽屉"
+                                Tag="Top" />
+                        </lyu:SimpleStackPanel>
+                    </lyu:Drawer>
+
+                    <lyu:Drawer
+                        x:Name="BottomDemoDrawer"
+                        Height="240"
+                        CornerRadius="12,12,0,0"
+                        Header="底部抽屉"
+                        Position="Bottom">
+                        <lyu:SimpleStackPanel Orientation="Vertical" Spacing="8">
+                            <TextBlock
+                                FontSize="15"
+                                FontWeight="SemiBold"
+                                Text="日志控制台" />
+                            <Border
+                                Height="120"
+                                Padding="8"
+                                Background="#11000000"
+                                BorderBrush="#20000000"
+                                BorderThickness="1"
+                                CornerRadius="6">
+                                <TextBlock Text="10:31:20 任务开始&#x0a;10:31:21 加载配置完成&#x0a;10:31:22 正在执行..." TextWrapping="Wrap" />
+                            </Border>
+                            <Button
+                                Click="CloseDemoDrawer_Click"
+                                Content="关闭底部抽屉"
+                                Tag="Bottom" />
+                        </lyu:SimpleStackPanel>
+                    </lyu:Drawer>
+                </lyu:DrawersHost>
+            </TabItem>
+
             <TabItem Header="色调">
                 <ikw:SquarePicker
                     Width="300"
@@ -463,7 +787,7 @@
                     VerticalAlignment="Center" />
             </TabItem>
             <TabItem Header="异常">
-                <Button Content="抛出异常"  Click="ThrowError_Click"/>
+                <Button Click="ThrowError_Click" Content="抛出异常" />
             </TabItem>
         </TabControl>
 

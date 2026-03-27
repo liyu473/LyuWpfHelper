@@ -1,0 +1,232 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:LyuWpfHelper.Controls"
+    xmlns:helpers="clr-namespace:LyuWpfHelper.Helpers">
+
+    <!--  Drawer theme tokens (can be overridden by app resources)  -->
+    <SolidColorBrush x:Key="LyuDrawer.Light.BackgroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="LyuDrawer.Light.ForegroundBrush" Color="#FF1F1F1F" />
+    <SolidColorBrush x:Key="LyuDrawer.Light.BorderBrush" Color="#22000000" />
+    <SolidColorBrush x:Key="LyuDrawer.Light.HeaderBackgroundBrush" Color="#FFF7F7F7" />
+    <SolidColorBrush x:Key="LyuDrawer.Light.HeaderForegroundBrush" Color="#FF1F1F1F" />
+    <SolidColorBrush x:Key="LyuDrawer.Light.CloseIconBrush" Color="#FF616161" />
+    <SolidColorBrush x:Key="LyuDrawer.Light.CloseHoverBackgroundBrush" Color="#14000000" />
+    <SolidColorBrush x:Key="LyuDrawer.Light.OverlayBrush" Color="#8C000000" />
+
+    <SolidColorBrush x:Key="LyuDrawer.Dark.BackgroundBrush" Color="#FF242424" />
+    <SolidColorBrush x:Key="LyuDrawer.Dark.ForegroundBrush" Color="#FFF2F2F2" />
+    <SolidColorBrush x:Key="LyuDrawer.Dark.BorderBrush" Color="#30FFFFFF" />
+    <SolidColorBrush x:Key="LyuDrawer.Dark.HeaderBackgroundBrush" Color="#FF2D2D2D" />
+    <SolidColorBrush x:Key="LyuDrawer.Dark.HeaderForegroundBrush" Color="#FFF2F2F2" />
+    <SolidColorBrush x:Key="LyuDrawer.Dark.CloseIconBrush" Color="#FFE4E4E4" />
+    <SolidColorBrush x:Key="LyuDrawer.Dark.CloseHoverBackgroundBrush" Color="#26FFFFFF" />
+    <SolidColorBrush x:Key="LyuDrawer.Dark.OverlayBrush" Color="#A6000000" />
+
+    <Style TargetType="{x:Type controls:DrawersHost}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="OverlayOpacity" Value="0.35" />
+        <Setter Property="OverlayMode" Value="{x:Static controls:DrawerOverlayMode.WhenAnyOpen}" />
+        <Setter Property="OverlayCloseBehavior" Value="{x:Static controls:DrawerOverlayCloseBehavior.CloseTopMost}" />
+        <Setter Property="CloseOnOverlayClick" Value="True" />
+        <Setter Property="CloseOnEscape" Value="True" />
+        <Setter Property="OverlayBrush" Value="{DynamicResource LyuDrawer.Light.OverlayBrush}" />
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <Grid IsItemsHost="True" />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:DrawersHost}">
+                    <Grid ClipToBounds="True">
+                        <ContentPresenter Content="{TemplateBinding MainContent}" />
+
+                        <Button
+                            x:Name="PART_OverlayButton"
+                            Background="{TemplateBinding OverlayBrush}"
+                            BorderThickness="0"
+                            Focusable="False"
+                            IsHitTestVisible="False"
+                            IsTabStop="False"
+                            Opacity="{TemplateBinding OverlayOpacity}"
+                            Visibility="Collapsed">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" />
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <ItemsPresenter />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="HasVisibleOverlay" Value="True">
+                            <Setter TargetName="PART_OverlayButton" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="PART_OverlayButton" Property="IsHitTestVisible" Value="True" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="ActualTheme" Value="{x:Static helpers:WindowThemeMode.Dark}">
+                <Setter Property="OverlayBrush" Value="{DynamicResource LyuDrawer.Dark.OverlayBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="{x:Type controls:Drawer}">
+        <Setter Property="Background" Value="{DynamicResource LyuDrawer.Light.BackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource LyuDrawer.Light.ForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LyuDrawer.Light.BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="HeaderBackground" Value="{DynamicResource LyuDrawer.Light.HeaderBackgroundBrush}" />
+        <Setter Property="HeaderForeground" Value="{DynamicResource LyuDrawer.Light.HeaderForegroundBrush}" />
+        <Setter Property="CloseButtonForeground" Value="{DynamicResource LyuDrawer.Light.CloseIconBrush}" />
+        <Setter Property="CloseButtonHoverBackground" Value="{DynamicResource LyuDrawer.Light.CloseHoverBackgroundBrush}" />
+        <Setter Property="ShowHeader" Value="True" />
+        <Setter Property="ShowCloseButton" Value="True" />
+        <Setter Property="ThemeMode" Value="{x:Static controls:DrawerThemeMode.Adapt}" />
+        <Setter Property="Visibility" Value="Collapsed" />
+        <Setter Property="Focusable" Value="True" />
+        <Setter Property="Width" Value="360" />
+        <Setter Property="MinWidth" Value="140" />
+        <Setter Property="MinHeight" Value="140" />
+        <Setter Property="Panel.ZIndex" Value="1" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:Drawer}">
+                    <Border
+                        x:Name="PART_Root"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                        <Border.RenderTransform>
+                            <TranslateTransform />
+                        </Border.RenderTransform>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Border
+                                x:Name="PART_HeaderContainer"
+                                Grid.Row="0"
+                                Padding="{TemplateBinding HeaderPadding}"
+                                Background="{TemplateBinding HeaderBackground}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="0,0,0,1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ContentPresenter
+                                        VerticalAlignment="Center"
+                                        ContentSource="Header"
+                                        RecognizesAccessKey="True"
+                                        TextElement.FontSize="14"
+                                        TextElement.FontWeight="SemiBold"
+                                        TextElement.Foreground="{TemplateBinding HeaderForeground}" />
+
+                                    <Button
+                                        x:Name="PART_CloseButton"
+                                        Grid.Column="1"
+                                        Width="28"
+                                        Height="28"
+                                        Margin="10,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        Focusable="False"
+                                        Foreground="{TemplateBinding CloseButtonForeground}">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" CornerRadius="14">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="{Binding CloseButtonHoverBackground, RelativeSource={RelativeSource AncestorType={x:Type controls:Drawer}}}" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <Path
+                                            Width="10"
+                                            Height="10"
+                                            Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                            Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                            Stretch="Uniform" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Row="1" Padding="{TemplateBinding ContentPadding}">
+                                <ContentPresenter
+                                    x:Name="PART_ContentHost"
+                                    ContentSource="Content"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}" />
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="ShowHeader" Value="False">
+                            <Setter TargetName="PART_HeaderContainer" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="ShowCloseButton" Value="False">
+                            <Setter TargetName="PART_CloseButton" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="Position" Value="{x:Static controls:DrawerPosition.Left}">
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="VerticalAlignment" Value="Stretch" />
+            </Trigger>
+            <Trigger Property="Position" Value="{x:Static controls:DrawerPosition.Right}">
+                <Setter Property="HorizontalAlignment" Value="Right" />
+                <Setter Property="VerticalAlignment" Value="Stretch" />
+            </Trigger>
+            <Trigger Property="Position" Value="{x:Static controls:DrawerPosition.Top}">
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="VerticalAlignment" Value="Top" />
+                <Setter Property="Height" Value="300" />
+                <Setter Property="Width" Value="Auto" />
+            </Trigger>
+            <Trigger Property="Position" Value="{x:Static controls:DrawerPosition.Bottom}">
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="VerticalAlignment" Value="Bottom" />
+                <Setter Property="Height" Value="300" />
+                <Setter Property="Width" Value="Auto" />
+            </Trigger>
+            <Trigger Property="ResolvedTheme" Value="{x:Static helpers:WindowThemeMode.Dark}">
+                <Setter Property="Background" Value="{DynamicResource LyuDrawer.Dark.BackgroundBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource LyuDrawer.Dark.ForegroundBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource LyuDrawer.Dark.BorderBrush}" />
+                <Setter Property="HeaderBackground" Value="{DynamicResource LyuDrawer.Dark.HeaderBackgroundBrush}" />
+                <Setter Property="HeaderForeground" Value="{DynamicResource LyuDrawer.Dark.HeaderForegroundBrush}" />
+                <Setter Property="CloseButtonForeground" Value="{DynamicResource LyuDrawer.Dark.CloseIconBrush}" />
+                <Setter Property="CloseButtonHoverBackground" Value="{DynamicResource LyuDrawer.Dark.CloseHoverBackgroundBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

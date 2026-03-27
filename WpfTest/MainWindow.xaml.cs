@@ -1,8 +1,9 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using iNKORE.UI.WPF.Modern;
 using LyuWpfHelper.Controls;
+using LyuWpfHelper.Extensions;
 using LyuWpfHelper.Helpers;
 using LyuWpfHelper.Panels;
 using LyuWpfHelper.Services;
@@ -16,15 +17,21 @@ public partial class MainWindow : LyuWindow
 {
     private readonly MainViewModel _vm;
     private readonly INotificationService _notificationService;
+    private readonly IBusyService _busyService;
 
-    public MainWindow(MainViewModel viewModel, INotificationService notificationService)
+    public MainWindow(
+        MainViewModel viewModel,
+        INotificationService notificationService,
+        IBusyService busyService
+    )
     {
         InitializeComponent();
         _vm = viewModel;
         _notificationService = notificationService;
+        _busyService = busyService;
         DataContext = _vm;
 
-        _notificationService.SetOwnerWindow(this);
+        ConfigureDrawerDemoDefaults();
     }
 
     private void TitleBarRefreshButton_Click(object sender, RoutedEventArgs e)
@@ -263,7 +270,7 @@ public partial class MainWindow : LyuWindow
             };
             _notificationService.Show(
                 $"通知 {i}",
-                $"这是第 {i} 条通知，测试最多显示5个",
+                $"这是第 {i} 条通知，测试最多显示 5 条",
                 type,
                 NotificationPosition.TopRight,
                 5
@@ -454,6 +461,189 @@ public partial class MainWindow : LyuWindow
         }
     }
 
+    private void OpenDemoDrawer_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string tag)
+        {
+            return;
+        }
+
+        GetDemoDrawerByTag(tag)?.Open();
+    }
+
+    private void CloseDemoDrawer_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string tag)
+        {
+            return;
+        }
+
+        GetDemoDrawerByTag(tag)?.Close();
+    }
+
+    private void CloseAllDemoDrawers_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (Drawer drawer in GetDemoDrawers())
+        {
+            drawer.Close();
+        }
+    }
+
+    private void DrawerOptionChanged(object sender, RoutedEventArgs e)
+    {
+        ApplyDrawerDemoOptions();
+    }
+
+    private void DrawerThemeModeComboBox_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e
+    )
+    {
+        ApplyDrawerDemoOptions();
+    }
+
+    private void DrawerOverlayModeComboBox_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e
+    )
+    {
+        if (
+            sender is not ComboBox comboBox
+            || comboBox.SelectedItem is not ComboBoxItem selectedItem
+            || selectedItem.Tag is not string tag
+        )
+        {
+            return;
+        }
+
+        if (Enum.TryParse(tag, true, out DrawerOverlayMode mode))
+        {
+            DrawerDemoHost.OverlayMode = mode;
+        }
+    }
+
+    private void DrawerOverlayCloseBehaviorComboBox_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e
+    )
+    {
+        if (
+            sender is not ComboBox comboBox
+            || comboBox.SelectedItem is not ComboBoxItem selectedItem
+            || selectedItem.Tag is not string tag
+        )
+        {
+            return;
+        }
+
+        if (Enum.TryParse(tag, true, out DrawerOverlayCloseBehavior behavior))
+        {
+            DrawerDemoHost.OverlayCloseBehavior = behavior;
+        }
+    }
+
+    private void DrawerAutoCloseSlider_ValueChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<double> e
+    )
+    {
+        ApplyDrawerDemoOptions();
+    }
+
+    private void DrawerHiddenOffsetSlider_ValueChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<double> e
+    )
+    {
+        ApplyDrawerDemoOptions();
+    }
+
+    private void ConfigureDrawerDemoDefaults()
+    {
+        if (!IsLoaded)
+        {
+            Loaded += MainWindowLoaded;
+            return;
+        }
+
+        ApplyDrawerDemoOptions();
+    }
+
+    private void MainWindowLoaded(object sender, RoutedEventArgs e)
+    {
+        Loaded -= MainWindowLoaded;
+        ApplyDrawerDemoOptions();
+    }
+
+    private void ApplyDrawerDemoOptions()
+    {
+        if (!IsInitialized || DrawerAutoCloseValueText is null)
+        {
+            return;
+        }
+
+        int autoCloseSeconds = (int)Math.Round(DrawerAutoCloseSlider.Value);
+        double hiddenOffset = Math.Round(DrawerHiddenOffsetSlider.Value);
+
+        DrawerAutoCloseValueText.Text = $"{autoCloseSeconds}s";
+
+        bool isPinned = DrawerPinCheckBox.IsChecked == true;
+        bool animate = DrawerAnimateCheckBox.IsChecked == true;
+        bool animateOpacity = DrawerAnimateOpacityCheckBox.IsChecked == true;
+        bool closeOnOverlay = DrawerCloseOnOverlayCheckBox.IsChecked == true;
+        bool closeOnEscape = DrawerCloseOnEscapeCheckBox.IsChecked == true;
+
+        DrawerDemoHost.CloseOnOverlayClick = closeOnOverlay;
+        DrawerDemoHost.CloseOnEscape = closeOnEscape;
+
+        foreach (Drawer drawer in GetDemoDrawers())
+        {
+            drawer.IsPinned = isPinned;
+            drawer.AreAnimationsEnabled = animate;
+            drawer.AnimateOpacity = animateOpacity;
+            drawer.CloseOnOverlayClick = closeOnOverlay;
+            drawer.CloseOnEscape = closeOnEscape;
+            drawer.HiddenOffset = hiddenOffset;
+            drawer.AutoCloseDelay =
+                autoCloseSeconds <= 0 ? TimeSpan.Zero : TimeSpan.FromSeconds(autoCloseSeconds);
+        }
+
+        if (
+            DrawerThemeModeComboBox.SelectedItem is ComboBoxItem selectedThemeItem
+            && selectedThemeItem.Tag is string themeTag
+            && Enum.TryParse(themeTag, true, out DrawerThemeMode themeMode)
+        )
+        {
+            foreach (Drawer drawer in GetDemoDrawers())
+            {
+                drawer.ThemeMode = themeMode;
+            }
+        }
+
+        // Keep at least one non-modal and one modal drawer for OverlayMode demo.
+        LeftDemoDrawer.IsModal = true;
+        RightDemoDrawer.IsModal = true;
+        TopDemoDrawer.IsModal = false;
+        BottomDemoDrawer.IsModal = false;
+    }
+
+    private Drawer? GetDemoDrawerByTag(string tag)
+    {
+        return tag switch
+        {
+            "Left" => LeftDemoDrawer,
+            "Right" => RightDemoDrawer,
+            "Top" => TopDemoDrawer,
+            "Bottom" => BottomDemoDrawer,
+            _ => null,
+        };
+    }
+
+    private Drawer[] GetDemoDrawers()
+    {
+        return [LeftDemoDrawer, RightDemoDrawer, TopDemoDrawer, BottomDemoDrawer];
+    }
+
     protected override void OnThemeChanged(LyuWindowThemeChangedEventArgs e)
     {
         base.OnThemeChanged(e);
@@ -463,8 +653,87 @@ public partial class MainWindow : LyuWindow
         ThemeManager.SetRequestedTheme(this, elementTheme);
     }
 
+    private void ShowDefaultBusy_Click(object sender, RoutedEventArgs e)
+    {
+        _busyService.Show("正在加载数据，请稍候...", timeout: 5000);
+    }
+
+    private void ShowCustomBusy_Click(object sender, RoutedEventArgs e)
+    {
+        var customContent = new StackPanel
+        {
+            Orientation = Orientation.Vertical,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+
+        customContent.Children.Add(
+            new TextBlock
+            {
+                FontSize = 20,
+                FontWeight = FontWeights.SemiBold,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Text = "正在同步数据...",
+            }
+        );
+        customContent.Children.Add(
+            new TextBlock
+            {
+                Margin = new Thickness(0, 8, 0, 0),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Text = "请稍候片刻",
+            }
+        );
+        customContent.Children.Add(
+            new ProgressBar
+            {
+                Width = 240,
+                Height = 8,
+                Margin = new Thickness(0, 14, 0, 0),
+                IsIndeterminate = true,
+            }
+        );
+
+        _busyService.ShowWithContent(customContent, timeout: 2000);
+    }
+
     private void ThrowError_Click(object sender, RoutedEventArgs e)
     {
         throw new Exception("这是一个测试异常");
+    }
+
+    private async void ShowTaskBusy_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await _busyService.RunWithBusyAsync(
+                async (ct) =>
+                {
+                    await Task.Delay(5000, ct);
+                },
+                timeout: TimeSpan.FromSeconds(2),
+                onTimeout: ts => _notificationService.ShowWarning($"超时：{ts.TotalSeconds}s")
+            );
+        }
+        catch (TimeoutException) { }
+        catch (Exception ex)
+        {
+            _notificationService.ShowError($"任务执行失败: {ex.Message}");
+        }
+    }
+
+    private async void ShowTaskBusywithoutTimeout_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await _busyService.RunWithBusyAsync(async () =>
+            {
+                await Task.Delay(5000);
+            });
+        }
+        catch (Exception ex)
+        {
+            _notificationService.ShowError($"任务执行失败: {ex.Message}");
+        }
     }
 }

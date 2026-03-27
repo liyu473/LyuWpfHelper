@@ -13,9 +13,34 @@ namespace LyuWpfHelper.Extensions
         /// </summary>
         /// <param name="services">服务集合</param>
         /// <returns>服务集合</returns>
-        public static IServiceCollection AddLyuNotificationService(this IServiceCollection services)
+        public static IServiceCollection AddLyuNotificationService(
+            this IServiceCollection services,
+            ServiceLifetime lifetime = ServiceLifetime.Transient
+        )
         {
-            services.AddSingleton<INotificationService, NotificationService>();
+            services.Add(
+                new ServiceDescriptor(
+                    typeof(INotificationService),
+                    typeof(NotificationService),
+                    lifetime
+                )
+            );
+            return services;
+        }
+
+        /// <summary>
+        /// 添加 LyuWpfHelper Busy 服务
+        /// </summary>
+        /// <param name="services">服务集合</param>
+        /// <returns>服务集合</returns>
+        public static IServiceCollection AddLyuBusyService(
+            this IServiceCollection services,
+            ServiceLifetime lifetime = ServiceLifetime.Transient
+        )
+        {
+            services.Add(
+                new ServiceDescriptor(typeof(IBusyService), typeof(BusyService), lifetime)
+            );
             return services;
         }
     }
