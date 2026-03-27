@@ -173,6 +173,54 @@ public partial class MainWindow : LyuWindow
 
 ### 🛠️ 辅助类 (Helpers)
 
+#### GlobalExceptionHandler
+全局异常捕获辅助类,捕获 WPF 应用程序中的所有未处理异常。
+
+**基本用法:**
+```csharp
+// 在 App.xaml.cs 中初始化
+public partial class App : Application
+{
+    private GlobalExceptionHandler? _exceptionHandler;
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        // 仅使用日志记录
+        _exceptionHandler = new GlobalExceptionHandler(logger);
+        _exceptionHandler.Initialize();
+    }
+}
+```
+
+**自定义异常处理:**
+```csharp
+// 自定义处理 + 日志
+_exceptionHandler = new GlobalExceptionHandler(
+    logger,
+    ex =>
+    {
+        // 显示友好的错误提示
+        MessageBox.Show($"程序发生错误: {ex.Message}", "错误",
+                       MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+);
+_exceptionHandler.Initialize();
+```
+
+**特性:**
+- 捕获 UI 线程异常 (DispatcherUnhandledException)
+- 捕获非 UI 线程异常 (UnhandledException)
+- 捕获 Task 未观察异常 (UnobservedTaskException)
+- 自动记录完整的异常堆栈信息
+- 支持自定义异常处理逻辑
+- 防止应用程序崩溃
+
+**参数:**
+- `logger` - ILogger 实例,用于记录异常日志(可选)
+- `customHandler` - 自定义异常处理委托(可选)
+
 #### WindowBackdropHelper
 窗口背景材质辅助类，为窗口添加 Acrylic、Mica 等现代化背景效果（Windows 11+）。
 
