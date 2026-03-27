@@ -49,6 +49,119 @@ services.AddLyuNotificationService();
 **显示位置：** TopRight、BottomRight、TopCenter、BottomCenter
 **参数：** `title`、`message`、`type`、`position`、`durationSeconds`（0 表示不自动关闭）
 
+#### Drawer / DrawersHost
+抽屉控件，支持四方向滑出、遮罩、主题跟随/反转、外部点击关闭和动画。
+
+**基本用法：**
+```xml
+<Grid>
+    <Button
+        Width="140"
+        Height="36"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Click="OpenDrawer_Click"
+        Content="打开右侧抽屉" />
+
+    <lyu:DrawersHost>
+        <lyu:Drawer
+            x:Name="RightDrawer"
+            Width="340"
+            Header="右侧抽屉"
+            Position="Right"
+            ThemeMode="Inverse"
+            IsModal="True"
+            CloseOnOverlayClick="True">
+            <TextBlock Text="这里是抽屉内容" TextWrapping="Wrap" />
+        </lyu:Drawer>
+    </lyu:DrawersHost>
+</Grid>
+```
+
+```csharp
+private void OpenDrawer_Click(object sender, RoutedEventArgs e)
+{
+    RightDrawer.IsOpen = true;
+    // 或 RightDrawer.Open();
+}
+```
+
+**常用属性（Drawer）：**
+- `Position`：抽屉方向（`Left` / `Right` / `Top` / `Bottom`）
+- `IsOpen`：是否打开（支持双向绑定）
+- `IsModal`：是否显示遮罩并参与遮罩点击层（默认 `true`）
+- `CloseOnOverlayClick`：点击抽屉外部是否关闭（默认 `true`）
+- `CloseOnEscape`：按 `Esc` 是否关闭（默认 `true`）
+- `AreAnimationsEnabled`：是否启用动画（默认 `true`）
+- `AnimationDuration`：动画时长（默认 `0:0:0.5`）
+- `AnimateOpacity`：是否叠加透明度动画（默认 `false`，`true` 时为位移 + 淡入淡出）
+- `ThemeMode`：`Adapt` / `Light` / `Dark` / `Inverse`
+- `OverlayBrush`、`OverlayOpacity`：遮罩颜色与透明度（按抽屉可单独配置）
+- `HeaderBackground`、`HeaderForeground`：标题区样式（`Background` 只影响主体内容区）
+
+#### Busy（BusyService + BusyMaskControl）
+Busy 遮罩用于长任务期间的加载提示和交互阻止。推荐通过 `IBusyService` 使用。
+
+**注册服务（DI）：**
+```csharp
+services.AddLyuBusyService();
+```
+
+**使用示例：**
+```csharp
+public partial class MainWindow : Window
+{
+    private readonly IBusyService _busyService;
+
+    public MainWindow(IBusyService busyService)
+    {
+        InitializeComponent();
+        _busyService = busyService;
+        _busyService.SetOwnerWindow(this); //未设置默认为主窗口
+    }
+
+    private async void LoadButton_Click(object sender, RoutedEventArgs e)
+    {
+        await _busyService.RunWithBusyAsync(
+            async ct => { await Task.Delay(3000, ct); },
+            options: new BusyDisplayOptions
+            {
+                Title = "正在加载",
+                Message = "请稍候...",
+                BlockInput = true
+            },
+            timeout: TimeSpan.FromSeconds(10),
+            onTimeout: ts => MessageBox.Show($"超时：{ts.TotalSeconds}s")
+        );
+    }
+}
+```
+
+**快捷扩展方法：**
+```csharp
+_busyService.Show("正在加载数据...", timeout: 3000);
+_busyService.Show("同步中", "请稍候...", timeout: 0);
+_busyService.ShowWithContent(customContent, timeout: 2000);
+_busyService.Hide();
+```
+
+**BusyDisplayOptions 参数：**
+- `Title`：标题文本
+- `Message`：描述文本
+- `Content`：自定义内容（设置后优先显示自定义内容）
+- `BlockInput`：是否阻止下层交互（默认 `true`）
+
+**BusyMaskControl 直接使用（可选）：**
+```xml
+<Grid>
+    <!-- 页面内容 -->
+
+    <lyu:BusyMaskControl
+        Title="正在处理"
+        Message="请稍候..." />
+</Grid>
+```
+
 #### SelectableTextBlock
 可选择和复制文本的 TextBlock，比普通 TextBlock 更实用。
 
