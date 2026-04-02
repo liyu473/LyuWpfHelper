@@ -273,18 +273,16 @@ public class DrawersHost : ItemsControl
 
     private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        List<Drawer> openDrawers = GetOpenDrawers()
-            .OrderByDescending(Panel.GetZIndex)
-            .ToList();
-
-        if (openDrawers.Count == 0)
+        if (e.OriginalSource is DependencyObject source)
         {
-            return;
-        }
-
-        if (e.OriginalSource is DependencyObject source && openDrawers.Any(d => IsDescendantOf(source, d)))
-        {
-            return;
+            foreach (object item in Items)
+            {
+                Drawer? drawer = item as Drawer ?? ItemContainerGenerator.ContainerFromItem(item) as Drawer;
+                if (drawer is not null && drawer.IsOpen && IsDescendantOf(source, drawer))
+                {
+                    return;
+                }
+            }
         }
 
         if (TryCloseByExternalClick())
