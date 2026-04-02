@@ -17,6 +17,7 @@ namespace WpfTest
     public partial class App : Application
     {
         private readonly IHost _host;
+        private SingleInstanceHelper? _singleInstanceHelper;
 
         public App()
         {
@@ -61,6 +62,16 @@ namespace WpfTest
 
         protected override async void OnStartup(StartupEventArgs e)
         {
+            _singleInstanceHelper = SingleInstanceHelper.TryCreate();
+            if (_singleInstanceHelper is null)
+            {
+                MessageBox.Show("程序已经在运行中。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                Shutdown();
+                return;
+            }
+
+            base.OnStartup(e);
+
             // 在创建任何窗口之前初始化 iNKORE 主题
             ThemeManager.Current.ApplicationTheme = ApplicationTheme.Light;
 
@@ -91,12 +102,11 @@ namespace WpfTest
                 }
             );
             global.Initialize(); 
-
-            base.OnStartup(e);
         }
 
         protected override async void OnExit(ExitEventArgs e)
         {
+            _singleInstanceHelper?.Dispose();
             await _host.StopAsync();
             _host.Dispose();
 
