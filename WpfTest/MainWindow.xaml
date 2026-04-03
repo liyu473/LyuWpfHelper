@@ -23,7 +23,6 @@
         </ResourceDictionary>
     </lyu:LyuWindow.Resources>
 
-
     <lyu:LyuWindow.TitleBarLeftContent>
         <DockPanel LastChildFill="False">
             <TextBlock
@@ -42,6 +41,10 @@
                 Content="Backdrop测试" />
         </DockPanel>
     </lyu:LyuWindow.TitleBarLeftContent>
+
+    <lyu:LyuWindow.TitleBarBackground>
+        <SolidColorBrush Opacity="0.15" Color="{Binding Source={x:Static ui:ThemeManager.Current}, Path=AccentColor}" />
+    </lyu:LyuWindow.TitleBarBackground>
 
     <lyu:LyuWindow.TitleBarRightContent>
         <lyu:SimpleStackPanel

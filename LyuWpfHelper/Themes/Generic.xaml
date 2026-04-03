@@ -178,13 +178,18 @@
                                 x:Name="PART_TitleBar"
                                 Grid.Row="0"
                                 Height="{TemplateBinding TitleBarHeight}"
-                                Background="{TemplateBinding TitleBarBackground}"
+                                Background="Transparent"
                                 TextElement.Foreground="{TemplateBinding TitleBarForeground}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
+
+                                <Border
+                                    Grid.ColumnSpan="3"
+                                    Background="{TemplateBinding TitleBarBackground}"
+                                    IsHitTestVisible="False" />
 
                                 <Grid Grid.Column="0">
                                     <Grid.ColumnDefinitions>
@@ -236,13 +241,8 @@
                                     Grid.Column="1"
                                     Margin="0"
                                     HorizontalAlignment="Right"
-                                    VerticalAlignment="Stretch">
-                                    <Border.Background>
-                                        <MultiBinding Converter="{StaticResource TransparentBrushFallbackConverter}">
-                                            <Binding Path="TitleBarBackground" RelativeSource="{RelativeSource TemplatedParent}" />
-                                            <Binding Path="Background" RelativeSource="{RelativeSource TemplatedParent}" />
-                                        </MultiBinding>
-                                    </Border.Background>
+                                    VerticalAlignment="Stretch"
+                                    Background="Transparent">
 
                                     <ContentPresenter
                                         x:Name="PART_TitleRightContentPresenter"
