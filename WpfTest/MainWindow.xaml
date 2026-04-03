@@ -15,9 +15,15 @@
     lyu:LyuWindowHelper.FullScreenKey="F11"
     lyu:WindowBackdropHelper.Backdrop="Mica"
     Icon="/Asserts/logo.ico"
-    TitleBarBackground="Transparent"
     TitleBarHeight="40"
     mc:Ignorable="d">
+    <lyu:LyuWindow.Resources>
+        <ResourceDictionary>
+            <lyu:ColorToBrushConverter x:Key="ColorToBrushConverter" />
+        </ResourceDictionary>
+    </lyu:LyuWindow.Resources>
+
+
     <lyu:LyuWindow.TitleBarLeftContent>
         <DockPanel LastChildFill="False">
             <TextBlock
@@ -72,6 +78,13 @@
     </lyu:LyuWindow.TitleBarRightContent>
 
     <Grid>
+        <Grid.Background>
+            <LinearGradientBrush Opacity="0.15" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Offset="0" Color="{Binding Source={x:Static ui:ThemeManager.Current}, Path=AccentColor}" />
+                <GradientStop Offset="0.5" Color="{Binding Source={x:Static ui:ThemeManager.Current}, Path=AccentColor}" />
+                <GradientStop Offset="1" Color="Transparent" />
+            </LinearGradientBrush>
+        </Grid.Background>
         <TabControl lyu:TabControlTransitionHelper.TransitionMode="Right2LeftWithFade" Style="{StaticResource TabControlPivotStyle}">
             <TabItem Header="SimpleStackPanel">
                 <lyu:SimpleStackPanel Orientation="Horizontal" Spacing="12">
@@ -559,11 +572,16 @@
             <TabItem Header="色调">
                 <lyu:SimpleStackPanel VerticalAlignment="Center" Spacing="20">
                     <ikw:SquarePicker
+                        x:Name="AccentColorPicker"
                         Width="300"
                         Height="300"
                         HorizontalAlignment="Center"
-                        VerticalAlignment="Center" />
-                    <TextBlock HorizontalAlignment="Center" Text="暂无" />
+                        VerticalAlignment="Center"
+                        ColorChanged="AccentColorPicker_ColorChanged" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="14"
+                        Text="选择主题色调,控件颜色会随之变化" />
                 </lyu:SimpleStackPanel>
 
             </TabItem>

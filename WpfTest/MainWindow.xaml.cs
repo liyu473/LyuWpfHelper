@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using iNKORE.UI.WPF.ColorPicker;
 using iNKORE.UI.WPF.Modern;
 using LyuWpfHelper.Controls;
 using LyuWpfHelper.Extensions;
@@ -571,6 +572,27 @@ public partial class MainWindow : LyuWindow
         catch (Exception ex)
         {
             _notificationService.ShowError($"任务执行失败: {ex.Message}");
+        }
+    }
+
+    private void AccentColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is SquarePicker picker)
+        {
+            var newColor = picker.SelectedColor;
+
+            // 使用动画平滑过渡颜色
+            var colorAnimation = new System.Windows.Media.Animation.ColorAnimation
+            {
+                To = newColor,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new System.Windows.Media.Animation.CubicEase
+                {
+                    EasingMode = System.Windows.Media.Animation.EasingMode.EaseInOut
+                }
+            };
+
+            ThemeManager.Current.AccentColor = newColor;
         }
     }
 }

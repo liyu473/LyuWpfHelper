@@ -157,6 +157,10 @@ public static class WindowThemeHelper
     {
         bool hasBackdrop = WindowBackdropHelper.GetBackdrop(window) != WindowBackdropType.Default;
         bool animate = !hasBackdrop;
+        bool canApplyTitleBarBackground = ShouldApplyThemeValue(
+            window,
+            LyuWindow.TitleBarBackgroundProperty
+        );
         Brush lightBackground = ResolveThemeBrush(
             window,
             LightWindowBackgroundBrushKey,
@@ -190,12 +194,15 @@ public static class WindowThemeHelper
             );
             window.Foreground = DarkWindowForeground;
             ApplyBrushWithTransition(window, Window.BorderBrushProperty, darkBorder, animate);
-            ApplyBrushWithTransition(
-                window,
-                LyuWindow.TitleBarBackgroundProperty,
-                hasBackdrop ? TransparentBrush : darkTitleBarBackground,
-                animate
-            );
+            if (canApplyTitleBarBackground)
+            {
+                ApplyBrushWithTransition(
+                    window,
+                    LyuWindow.TitleBarBackgroundProperty,
+                    hasBackdrop ? TransparentBrush : darkTitleBarBackground,
+                    animate
+                );
+            }
             window.TitleBarForeground = DarkTitleBarForeground;
             window.OtherButtonBackground = TransparentBrush;
             window.OtherButtonForeground = DarkTitleBarForeground;
@@ -216,12 +223,15 @@ public static class WindowThemeHelper
         );
         window.Foreground = LightWindowForeground;
         ApplyBrushWithTransition(window, Window.BorderBrushProperty, lightBorder, animate);
-        ApplyBrushWithTransition(
-            window,
-            LyuWindow.TitleBarBackgroundProperty,
-            hasBackdrop ? TransparentBrush : lightTitleBarBackground,
-            animate
-        );
+        if (canApplyTitleBarBackground)
+        {
+            ApplyBrushWithTransition(
+                window,
+                LyuWindow.TitleBarBackgroundProperty,
+                hasBackdrop ? TransparentBrush : lightTitleBarBackground,
+                animate
+            );
+        }
         window.TitleBarForeground = LightTitleBarForeground;
         window.OtherButtonBackground = TransparentBrush;
         window.OtherButtonForeground = LightTitleBarForeground;
@@ -293,6 +303,11 @@ public static class WindowThemeHelper
         }
 
         return fallback;
+    }
+
+    private static bool ShouldApplyThemeValue(DependencyObject target, DependencyProperty property)
+    {
+        return target.ReadLocalValue(property) == DependencyProperty.UnsetValue;
     }
 
     private static void ApplyBrushWithTransition(
