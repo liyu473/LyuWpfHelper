@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 
 namespace LyuWpfHelper.Helpers;
 
@@ -19,11 +20,25 @@ public static class DisplayMask
             new PropertyMetadata(null, OnMaskPropertyChanged)
         );
 
+    public static readonly DependencyProperty IsVisibleProperty =
+        DependencyProperty.RegisterAttached(
+            "IsVisible",
+            typeof(bool),
+            typeof(DisplayMask),
+            new PropertyMetadata(true, OnMaskPropertyChanged)
+        );
+
     public static string? GetText(DependencyObject obj) =>
         (string?)obj.GetValue(TextProperty);
 
     public static void SetText(DependencyObject obj, string? value) =>
         obj.SetValue(TextProperty, value);
+
+    public static bool GetIsVisible(DependencyObject obj) =>
+        (bool)obj.GetValue(IsVisibleProperty);
+
+    public static void SetIsVisible(DependencyObject obj, bool value) =>
+        obj.SetValue(IsVisibleProperty, value);
 
     private static void OnMaskPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -32,19 +47,9 @@ public static class DisplayMask
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(GetText(element)))
-        {
-            var state = States.GetValue(element, static target => new DisplayMaskState(target));
-            state.Attach();
-            state.Refresh();
-            return;
-        }
-
-        if (States.TryGetValue(element, out var stateToRemove))
-        {
-            stateToRemove.Detach();
-            States.Remove(element);
-        }
+        var state = States.GetValue(element, static target => new DisplayMaskState(target));
+        state.Attach();
+        state.Refresh();
     }
 
     private sealed class DisplayMaskState
@@ -57,11 +62,22 @@ public static class DisplayMask
         private bool _isUpdatingContent;
         private ContentControl? _contentControl;
         private Decorator? _decorator;
+        private Panel? _parentPanel;
+        private ContentControl? _parentContentControl;
+        private Decorator? _parentDecorator;
         private DependencyPropertyDescriptor? _contentDescriptor;
         private Grid? _wrapperRoot;
         private ContentControl? _contentHost;
         private UIElement? _decoratorChild;
+        private UIElement? _blurTarget;
+        private FrameworkElement? _wrappedElement;
+        private object? _parentContentControlContent;
+        private int _parentPanelChildIndex = -1;
         private Border? _overlay;
+        private Border? _contentBackground;
+        private Border? _contentBorderStroke;
+        private Border? _tintLayer;
+        private Border? _accentLayer;
         private TextBlock? _messageText;
 
         public DisplayMaskState(FrameworkElement element)
@@ -132,14 +148,9 @@ public static class DisplayMask
         public void Refresh()
         {
             var text = GetText(_element);
-            if (string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(text) || !GetIsVisible(_element))
             {
-                RemoveMask();
-                return;
-            }
-
-            if (_contentControl is null && _decorator is null)
-            {
+                HideMask();
                 return;
             }
 
@@ -151,7 +162,24 @@ public static class DisplayMask
             }
 
             _messageText.Text = text;
+            ApplyBlur(true);
+
             _overlay.IsHitTestVisible = true;
+            _overlay.Visibility = Visibility.Visible;
+            ApplyAppearance();
+        }
+
+        private void HideMask()
+        {
+            ApplyBlur(false);
+
+            if (_overlay is null)
+            {
+                return;
+            }
+
+            _overlay.IsHitTestVisible = false;
+            _overlay.Visibility = Visibility.Collapsed;
         }
 
         private void RemoveMask()
@@ -166,10 +194,26 @@ public static class DisplayMask
                 SetDecoratorChildSafely(_decoratorChild);
             }
 
+            if (_wrappedElement is not null && _wrapperRoot is not null)
+            {
+                RestoreWrappedElement();
+            }
+
             _wrapperRoot = null;
             _contentHost = null;
             _decoratorChild = null;
+            _wrappedElement = null;
+            _parentPanel = null;
+            _parentContentControl = null;
+            _parentDecorator = null;
+            _parentContentControlContent = null;
+            _parentPanelChildIndex = -1;
+            _blurTarget = null;
             _overlay = null;
+            _contentBackground = null;
+            _contentBorderStroke = null;
+            _tintLayer = null;
+            _accentLayer = null;
             _messageText = null;
         }
 
@@ -184,7 +228,10 @@ public static class DisplayMask
             if (_decorator is not null)
             {
                 EnsureDecoratorWrapped();
+                return;
             }
+
+            EnsureGeneralElementWrapped();
         }
 
         private void EnsureContentControlWrapped()
@@ -214,6 +261,7 @@ public static class DisplayMask
             wrapperRoot.Children.Add(overlay);
 
             _contentHost = contentHost;
+            _blurTarget = contentHost;
             _wrapperRoot = wrapperRoot;
             _overlay = overlay;
 
@@ -251,10 +299,47 @@ public static class DisplayMask
             wrapperRoot.Children.Add(overlay);
 
             _decoratorChild = originalChild;
+            _blurTarget = originalChild;
             _wrapperRoot = wrapperRoot;
             _overlay = overlay;
 
             SetDecoratorChildSafely(wrapperRoot);
+        }
+
+        private void EnsureGeneralElementWrapped()
+        {
+            if (_wrapperRoot is not null && _wrappedElement is not null)
+            {
+                return;
+            }
+
+            if (_element.Parent is not DependencyObject parent)
+            {
+                return;
+            }
+
+            var overlay = CreateOverlay();
+            var wrapperRoot = new Grid();
+
+            if (!TryDetachElementFromParent(parent))
+            {
+                return;
+            }
+
+            wrapperRoot.Children.Add(_element);
+            wrapperRoot.Children.Add(overlay);
+
+            if (!TryAttachWrapperToParent(wrapperRoot))
+            {
+                wrapperRoot.Children.Remove(_element);
+                TryRestoreElementToParent(_element);
+                return;
+            }
+
+            _wrappedElement = _element;
+            _blurTarget = _element;
+            _wrapperRoot = wrapperRoot;
+            _overlay = overlay;
         }
 
         private ContentControl CreateContentHost()
@@ -295,33 +380,86 @@ public static class DisplayMask
             {
                 FontSize = 20,
                 FontWeight = FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(Color.FromRgb(40, 54, 78)),
                 TextWrapping = TextWrapping.Wrap,
                 TextAlignment = TextAlignment.Center,
             };
 
-            var messageCard = new Border
+            _contentBackground = new Border
             {
-                Padding = new Thickness(28, 18, 28, 18),
-                MinWidth = 220,
-                MaxWidth = 420,
-                CornerRadius = new CornerRadius(14),
-                Background = new SolidColorBrush(Color.FromArgb(236, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(56, 92, 118, 148)),
-                BorderThickness = new Thickness(1),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Child = _messageText,
+                CornerRadius = new CornerRadius(16),
+                Opacity = 0.78,
             };
 
-            return new Border
+            _contentBorderStroke = new Border
             {
-                Background = new SolidColorBrush(Color.FromArgb(168, 244, 247, 250)),
+                CornerRadius = new CornerRadius(16),
+                BorderThickness = new Thickness(0),
+                Opacity = 0,
+            };
+
+            var contentBorder = new Border
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                MinWidth = 280,
+                MaxWidth = 420,
+                CornerRadius = new CornerRadius(16),
+                Effect = new DropShadowEffect
+                {
+                    BlurRadius = 28,
+                    ShadowDepth = 0,
+                    Color = Color.FromArgb(56, 50, 72, 104),
+                    Opacity = 0.28,
+                },
                 Child = new Grid
                 {
                     Children =
                     {
-                        messageCard,
+                        _contentBackground,
+                        _contentBorderStroke,
+                        new StackPanel
+                        {
+                            Margin = new Thickness(28, 20, 28, 20),
+                            Children =
+                            {
+                                _messageText,
+                            },
+                        },
+                    },
+                },
+            };
+
+            _tintLayer = new Border
+            {
+                Opacity = 0.32,
+                BorderThickness = new Thickness(0),
+            };
+
+            _accentLayer = new Border
+            {
+                Opacity = 0,
+                IsHitTestVisible = false,
+            };
+
+            var noiseLayer = new Border
+            {
+                Background = CreateNoiseBrush(),
+                Opacity = 0.02,
+                IsHitTestVisible = false,
+            };
+
+            return new Border
+            {
+                Visibility = Visibility.Collapsed,
+                Background = Brushes.Transparent,
+                Child = new Grid
+                {
+                    Children =
+                    {
+                        _tintLayer,
+                        _accentLayer,
+                        noiseLayer,
+                        contentBorder,
                     },
                 },
             };
@@ -407,6 +545,197 @@ public static class DisplayMask
             {
                 _isUpdatingContent = false;
             }
+        }
+
+        private bool TryDetachElementFromParent(DependencyObject parent)
+        {
+            if (parent is Panel panel)
+            {
+                var childIndex = panel.Children.IndexOf(_element);
+                if (childIndex < 0)
+                {
+                    return false;
+                }
+
+                _parentPanel = panel;
+                _parentPanelChildIndex = childIndex;
+                panel.Children.RemoveAt(childIndex);
+                return true;
+            }
+
+            if (parent is ContentControl contentControl && ReferenceEquals(contentControl.Content, _element))
+            {
+                _parentContentControl = contentControl;
+                _parentContentControlContent = contentControl.Content;
+                contentControl.Content = null;
+                return true;
+            }
+
+            if (parent is Decorator decorator && ReferenceEquals(decorator.Child, _element))
+            {
+                _parentDecorator = decorator;
+                decorator.Child = null;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryAttachWrapperToParent(Grid wrapperRoot)
+        {
+            if (_parentPanel is not null)
+            {
+                var insertIndex = Math.Max(0, Math.Min(_parentPanelChildIndex, _parentPanel.Children.Count));
+                _parentPanel.Children.Insert(insertIndex, wrapperRoot);
+                CopyLayoutMetadata(_wrappedElement ?? _element, wrapperRoot);
+                return true;
+            }
+
+            if (_parentContentControl is not null)
+            {
+                _parentContentControl.Content = wrapperRoot;
+                return true;
+            }
+
+            if (_parentDecorator is not null)
+            {
+                _parentDecorator.Child = wrapperRoot;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void RestoreWrappedElement()
+        {
+            if (_wrappedElement is null || _wrapperRoot is null)
+            {
+                return;
+            }
+
+            _wrapperRoot.Children.Remove(_wrappedElement);
+            TryRestoreElementToParent(_wrappedElement);
+        }
+
+        private void TryRestoreElementToParent(FrameworkElement element)
+        {
+            if (_parentPanel is not null)
+            {
+                var wrapperIndex = _parentPanel.Children.IndexOf(_wrapperRoot!);
+                if (wrapperIndex >= 0)
+                {
+                    _parentPanel.Children.RemoveAt(wrapperIndex);
+                }
+
+                var insertIndex = Math.Max(0, Math.Min(_parentPanelChildIndex, _parentPanel.Children.Count));
+                _parentPanel.Children.Insert(insertIndex, element);
+                return;
+            }
+
+            if (_parentContentControl is not null)
+            {
+                if (ReferenceEquals(_parentContentControl.Content, _wrapperRoot))
+                {
+                    _parentContentControl.Content = element;
+                }
+                else if (_parentContentControlContent is not null)
+                {
+                    _parentContentControl.Content = _parentContentControlContent;
+                }
+
+                return;
+            }
+
+            if (_parentDecorator is not null)
+            {
+                if (ReferenceEquals(_parentDecorator.Child, _wrapperRoot))
+                {
+                    _parentDecorator.Child = element;
+                }
+            }
+        }
+
+        private static void CopyLayoutMetadata(FrameworkElement source, FrameworkElement target)
+        {
+            target.HorizontalAlignment = source.HorizontalAlignment;
+            target.VerticalAlignment = source.VerticalAlignment;
+            target.Margin = source.Margin;
+            target.Width = source.Width;
+            target.Height = source.Height;
+            target.MinWidth = source.MinWidth;
+            target.MinHeight = source.MinHeight;
+            target.MaxWidth = source.MaxWidth;
+            target.MaxHeight = source.MaxHeight;
+
+            target.SetValue(Grid.RowProperty, source.GetValue(Grid.RowProperty));
+            target.SetValue(Grid.ColumnProperty, source.GetValue(Grid.ColumnProperty));
+            target.SetValue(Grid.RowSpanProperty, source.GetValue(Grid.RowSpanProperty));
+            target.SetValue(Grid.ColumnSpanProperty, source.GetValue(Grid.ColumnSpanProperty));
+            target.SetValue(DockPanel.DockProperty, source.GetValue(DockPanel.DockProperty));
+            target.SetValue(Panel.ZIndexProperty, source.GetValue(Panel.ZIndexProperty));
+            target.SetValue(Canvas.LeftProperty, source.GetValue(Canvas.LeftProperty));
+            target.SetValue(Canvas.TopProperty, source.GetValue(Canvas.TopProperty));
+            target.SetValue(Canvas.RightProperty, source.GetValue(Canvas.RightProperty));
+            target.SetValue(Canvas.BottomProperty, source.GetValue(Canvas.BottomProperty));
+        }
+
+        private void ApplyAppearance()
+        {
+            ApplyBrush(_messageText, TextBlock.ForegroundProperty, new SolidColorBrush(Color.FromRgb(28, 44, 68)));
+            ApplyBrush(_contentBackground, Border.BackgroundProperty, new SolidColorBrush(Color.FromRgb(248, 250, 252)));
+            ApplyBrush(_tintLayer, Border.BackgroundProperty, new SolidColorBrush(Color.FromArgb(188, 238, 242, 247)));
+            ApplyBrush(_accentLayer, Border.BackgroundProperty, Brushes.Transparent);
+        }
+
+        private void ApplyBlur(bool isVisible)
+        {
+            if (_blurTarget is null)
+            {
+                return;
+            }
+
+            _blurTarget.Effect = isVisible ? new BlurEffect { Radius = 32 } : null;
+        }
+
+        private static void ApplyBrush(FrameworkElement? element, DependencyProperty property, Brush brush)
+        {
+            if (element is null)
+            {
+                return;
+            }
+
+            element.SetValue(property, brush);
+        }
+
+        private static Brush CreateNoiseBrush()
+        {
+            var primaryDot = new GeometryDrawing(
+                new SolidColorBrush(Color.FromArgb(42, 255, 255, 255)),
+                null,
+                new RectangleGeometry(new Rect(0, 0, 1, 1))
+            );
+            var secondaryDot = new GeometryDrawing(
+                new SolidColorBrush(Color.FromArgb(20, 255, 255, 255)),
+                null,
+                new RectangleGeometry(new Rect(2, 2, 1, 1))
+            );
+
+            var drawingGroup = new DrawingGroup();
+            drawingGroup.Children.Add(primaryDot);
+            drawingGroup.Children.Add(secondaryDot);
+            drawingGroup.Freeze();
+
+            var drawingBrush = new DrawingBrush(drawingGroup)
+            {
+                Stretch = Stretch.None,
+                TileMode = TileMode.Tile,
+                Viewport = new Rect(0, 0, 4, 4),
+                ViewportUnits = BrushMappingMode.Absolute,
+                Viewbox = new Rect(0, 0, 4, 4),
+                ViewboxUnits = BrushMappingMode.Absolute,
+            };
+            drawingBrush.Freeze();
+            return drawingBrush;
         }
     }
 }
