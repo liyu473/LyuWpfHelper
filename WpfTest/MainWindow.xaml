@@ -106,6 +106,118 @@
                 </lyu:SimpleStackPanel>
             </TabItem>
 
+            <TabItem Header="SimpleWrapPanel">
+                <Grid lyu:GridHelper.RowDefinitions="*,*">
+                    <lyu:SimpleWrapPanel
+                        Grid.Row="0"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="1" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="2" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="3" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="1" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="2" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="3" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="1" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="2" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="3" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="1" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="2" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="3" />
+                    </lyu:SimpleWrapPanel>
+
+                    <lyu:SimpleWrapPanel
+                        Grid.Row="1"
+                        Orientation="Vertical"
+                        Spacing="12">
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="1" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="2" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="3" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="1" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="2" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="3" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="1" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="2" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="3" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="1" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="2" />
+                        <Button
+                            Width="100"
+                            Height="30"
+                            Content="3" />
+                    </lyu:SimpleWrapPanel>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="datagrid  多选绑定">
                 <Grid>
                     <DataGrid
