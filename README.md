@@ -266,6 +266,36 @@ _busyService.Hide();
 - `TitleAlignment` - 标题对齐方式（Left/Center/Right）
 - `TitleMargin` - 标题边距
 
+**启动屏幕：**
+
+在窗口显示前设置 `SplashScreen`。`RunTasks` 会在后台线程执行；任务完成且达到最短显示时间后，启动屏幕淡出，窗口主内容淡入。
+
+```csharp
+public partial class MainWindow : LyuWindow
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+        SplashScreen = new AppSplashScreen();
+    }
+}
+
+internal sealed class AppSplashScreen : ILyuApplicationSplashScreen
+{
+    public string? AppName => "我的应用";
+    public ImageSource? AppIcon => null;
+    public object? SplashScreenContent => null;
+    public int MinimumShowTime => 1200;
+
+    public async Task RunTasks(CancellationToken cancellationToken)
+    {
+        await LoadSettingsAsync(cancellationToken);
+    }
+}
+```
+
+`SplashScreenContent`、`AppIcon`、`AppName` 按此顺序决定显示内容。需要更新自定义启动界面时，请通过 WPF `Dispatcher` 切回 UI 线程。窗口在加载期间关闭时，传入 `RunTasks` 的取消令牌会被取消。启动屏幕颜色可通过 `LyuSplashScreen.Light.BackgroundBrush`、`LyuSplashScreen.Dark.BackgroundBrush` 等资源覆盖。
+
 **主题事件：**
 ```csharp
 public partial class MainWindow : LyuWindow

@@ -20,6 +20,10 @@
     <SolidColorBrush x:Key="LyuWindowTheme.Dark.BorderBrush" Color="#FF404040" />
     <SolidColorBrush x:Key="LyuWindowTheme.Light.TitleBarBackgroundBrush" Color="#FFFFFFFF" />
     <SolidColorBrush x:Key="LyuWindowTheme.Dark.TitleBarBackgroundBrush" Color="#FF202020" />
+    <SolidColorBrush x:Key="LyuSplashScreen.Light.BackgroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="LyuSplashScreen.Dark.BackgroundBrush" Color="#FF202020" />
+    <SolidColorBrush x:Key="LyuSplashScreen.Light.ForegroundBrush" Color="#FF1F1F1F" />
+    <SolidColorBrush x:Key="LyuSplashScreen.Dark.ForegroundBrush" Color="#FFF3F3F3" />
 
     <!--  Notification theme tokens (can be overridden by app resources)  -->
     <SolidColorBrush x:Key="LyuNotification.Light.TitleBrush" Color="#FF212121" />
@@ -134,6 +138,47 @@
         x:Key="LyuTitleBarCloseButtonStyle"
         BasedOn="{StaticResource LyuTitleBarButtonStyle}"
         TargetType="{x:Type Button}" />
+
+    <Style TargetType="{x:Type controls:LyuSplashScreen}">
+        <Setter Property="Background" Value="{DynamicResource LyuSplashScreen.Light.BackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource LyuSplashScreen.Light.ForegroundBrush}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:LyuSplashScreen}">
+                    <Grid Background="{TemplateBinding Background}">
+                        <TextBlock
+                            x:Name="PART_AppName"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="32"
+                            FontWeight="SemiBold"
+                            Foreground="{TemplateBinding Foreground}"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap" />
+                        <Image
+                            x:Name="PART_AppIcon"
+                            Width="128"
+                            Height="128"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Stretch="Uniform" />
+                        <ContentPresenter
+                            x:Name="PART_CustomContent"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Path=(helpers:WindowThemeHelper.CurrentTheme), RelativeSource={RelativeSource AncestorType={x:Type controls:LyuWindow}}}" Value="{x:Static helpers:WindowThemeMode.Dark}">
+                <Setter Property="Background" Value="{DynamicResource LyuSplashScreen.Dark.BackgroundBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource LyuSplashScreen.Dark.ForegroundBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
 
     <Style TargetType="{x:Type controls:LyuWindow}">
         <Setter Property="ResizeMode" Value="CanResize" />
@@ -334,8 +379,15 @@
                             </Grid>
 
                             <AdornerDecorator Grid.Row="1">
-                                <ContentPresenter />
+                                <ContentPresenter x:Name="PART_ContentPresenter" />
                             </AdornerDecorator>
+
+                            <controls:LyuSplashScreen
+                                x:Name="PART_SplashScreen"
+                                Grid.RowSpan="2"
+                                Panel.ZIndex="100"
+                                SplashScreen="{TemplateBinding SplashScreen}"
+                                Visibility="Collapsed" />
                         </Grid>
                     </Border>
 
@@ -372,6 +424,11 @@
                         </Trigger>
                         <Trigger Property="ShowCloseButton" Value="False">
                             <Setter TargetName="PART_CloseButton" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="IsSplashScreenVisible" Value="True">
+                            <Setter TargetName="PART_ContentPresenter" Property="IsHitTestVisible" Value="False" />
+                            <Setter TargetName="PART_ContentPresenter" Property="Opacity" Value="0" />
+                            <Setter TargetName="PART_SplashScreen" Property="Visibility" Value="Visible" />
                         </Trigger>
 
                         <Trigger SourceName="PART_MinimizeButton" Property="IsMouseOver" Value="True">

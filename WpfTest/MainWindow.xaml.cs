@@ -27,6 +27,7 @@ public partial class MainWindow : LyuWindow
     )
     {
         InitializeComponent();
+        SplashScreen = new DemoApplicationSplashScreen();
         _vm = viewModel;
         _notificationService = notificationService;
         _busyService = busyService;
@@ -594,5 +595,21 @@ public partial class MainWindow : LyuWindow
 
             ThemeManager.Current.AccentColor = newColor;
         }
+    }
+}
+
+internal sealed class DemoApplicationSplashScreen : ILyuApplicationSplashScreen
+{
+    public string AppName => "LyuWpfHelper";
+
+    public ImageSource? AppIcon => null;
+
+    public object? SplashScreenContent => null;
+
+    public int MinimumShowTime => 1200;
+
+    public Task RunTasks(CancellationToken cancellationToken)
+    {
+        return Task.Delay(600, cancellationToken);
     }
 }

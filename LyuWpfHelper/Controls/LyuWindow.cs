@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -6,6 +7,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
 using System.Windows.Shell;
 using LyuWpfHelper.Helpers;
@@ -32,13 +34,21 @@ public class LyuWindow : Window
     private const int MonitorDefaultToNearest = 0x00000002;
     private const double TitleBarCaptionFix = 7d;
     private const string PartTitleBar = "PART_TitleBar";
+    private const string PartContentPresenter = "PART_ContentPresenter";
+    private const string PartSplashScreen = "PART_SplashScreen";
 
     private FrameworkElement? _titleBar;
+    private ContentPresenter? _contentPresenter;
+    private LyuSplashScreen? _splashScreenHost;
     private HwndSource? _hwndSource;
+    private CancellationTokenSource? _splashScreenCancellation;
     private Thickness _actualBorderThickness;
     private Thickness _commonPadding;
     private double _normalTitleBarHeight;
     private bool _isLoadedInitialized;
+    private bool _isContentRendered;
+    private bool _isSplashScreenRunning;
+    private bool _hasShownSplashScreen;
     private bool _hasThemeState;
     private WindowThemeMode _requestedTheme = WindowThemeMode.Light;
     private WindowThemeMode _effectiveTheme = WindowThemeMode.Light;
@@ -47,6 +57,24 @@ public class LyuWindow : Window
     /// Raised when theme is applied by <see cref="WindowThemeHelper"/>.
     /// </summary>
     public event EventHandler<LyuWindowThemeChangedEventArgs>? ThemeChanged;
+
+    public static readonly DependencyProperty SplashScreenProperty = DependencyProperty.Register(
+        nameof(SplashScreen),
+        typeof(ILyuApplicationSplashScreen),
+        typeof(LyuWindow),
+        new PropertyMetadata(null, OnSplashScreenChanged)
+    );
+
+    private static readonly DependencyPropertyKey IsSplashScreenVisiblePropertyKey =
+        DependencyProperty.RegisterReadOnly(
+            nameof(IsSplashScreenVisible),
+            typeof(bool),
+            typeof(LyuWindow),
+            new PropertyMetadata(false)
+        );
+
+    public static readonly DependencyProperty IsSplashScreenVisibleProperty =
+        IsSplashScreenVisiblePropertyKey.DependencyProperty;
 
     public static readonly DependencyProperty TitleBarContentProperty = DependencyProperty.Register(
         nameof(TitleBarContent),
@@ -262,10 +290,22 @@ public class LyuWindow : Window
             _titleBar.MouseLeftButtonDown -= OnTitleBarMouseLeftButtonDown;
         }
 
+        if (_splashScreenHost != null)
+        {
+            _splashScreenHost.SplashScreen = null;
+        }
+
         _titleBar = GetTemplateChild(PartTitleBar) as FrameworkElement;
+        _contentPresenter = GetTemplateChild(PartContentPresenter) as ContentPresenter;
+        _splashScreenHost = GetTemplateChild(PartSplashScreen) as LyuSplashScreen;
         if (_titleBar != null)
         {
             _titleBar.MouseLeftButtonDown += OnTitleBarMouseLeftButtonDown;
+        }
+
+        if (_splashScreenHost != null)
+        {
+            _splashScreenHost.SplashScreen = SplashScreen;
         }
     }
 
@@ -297,8 +337,18 @@ public class LyuWindow : Window
         ApplyRoundedCorners(WindowState);
     }
 
+    protected override void OnContentRendered(EventArgs e)
+    {
+        base.OnContentRendered(e);
+        _isContentRendered = true;
+        StartSplashScreen();
+    }
+
     protected override void OnClosed(EventArgs e)
     {
+        _isContentRendered = false;
+        _splashScreenCancellation?.Cancel();
+
         if (_hwndSource != null)
         {
             _hwndSource.RemoveHook(WindowProc);
@@ -327,6 +377,150 @@ public class LyuWindow : Window
 
         ApplyWindowChrome(WindowState);
         ApplyWindowStateLayout(WindowState);
+    }
+
+    private static void OnSplashScreenChanged(
+        DependencyObject d,
+        DependencyPropertyChangedEventArgs e
+    )
+    {
+        if (d is not LyuWindow window)
+        {
+            return;
+        }
+
+        window._splashScreenCancellation?.Cancel();
+        window._hasShownSplashScreen = false;
+
+        if (window._splashScreenHost != null)
+        {
+            window._splashScreenHost.SplashScreen =
+                (ILyuApplicationSplashScreen?)e.NewValue;
+        }
+
+        if (e.NewValue == null)
+        {
+            window.CompleteSplashScreen();
+            return;
+        }
+
+        window.SetValue(IsSplashScreenVisiblePropertyKey, true);
+        if (window._isContentRendered)
+        {
+            window.StartSplashScreen();
+        }
+    }
+
+    private async void StartSplashScreen()
+    {
+        if (
+            _isSplashScreenRunning
+            || _hasShownSplashScreen
+            || !_isContentRendered
+            || SplashScreen is not { } splashScreen
+        )
+        {
+            return;
+        }
+
+        _isSplashScreenRunning = true;
+        var cancellation = new CancellationTokenSource();
+        _splashScreenCancellation = cancellation;
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            await Task.Run(
+                () => splashScreen.RunTasks(cancellation.Token),
+                cancellation.Token
+            );
+
+            var minimumShowTime = TimeSpan.FromMilliseconds(
+                Math.Max(0, splashScreen.MinimumShowTime)
+            );
+            var remainingTime = minimumShowTime - stopwatch.Elapsed;
+            if (remainingTime > TimeSpan.Zero)
+            {
+                await Task.Delay(remainingTime, cancellation.Token);
+            }
+
+            if (!ReferenceEquals(SplashScreen, splashScreen))
+            {
+                return;
+            }
+
+            await TransitionFromSplashScreenAsync(cancellation.Token);
+            _hasShownSplashScreen = true;
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+        catch
+        {
+            if (ReferenceEquals(SplashScreen, splashScreen))
+            {
+                CompleteSplashScreen();
+            }
+
+            throw;
+        }
+        finally
+        {
+            stopwatch.Stop();
+            if (ReferenceEquals(_splashScreenCancellation, cancellation))
+            {
+                _splashScreenCancellation = null;
+            }
+
+            cancellation.Dispose();
+            _isSplashScreenRunning = false;
+        }
+
+        if (_isContentRendered && SplashScreen != null && !_hasShownSplashScreen)
+        {
+            StartSplashScreen();
+        }
+    }
+
+    private async Task TransitionFromSplashScreenAsync(CancellationToken cancellationToken)
+    {
+        if (_splashScreenHost == null || _contentPresenter == null)
+        {
+            CompleteSplashScreen();
+            return;
+        }
+
+        var easingFunction = new CubicEase { EasingMode = EasingMode.EaseOut };
+        _splashScreenHost.BeginAnimation(
+            OpacityProperty,
+            new DoubleAnimation
+            {
+                From = 1d,
+                To = 0d,
+                Duration = TimeSpan.FromMilliseconds(250),
+                EasingFunction = easingFunction,
+                FillBehavior = FillBehavior.HoldEnd,
+            }
+        );
+        _contentPresenter.BeginAnimation(
+            OpacityProperty,
+            new DoubleAnimation
+            {
+                From = 0d,
+                To = 1d,
+                Duration = TimeSpan.FromMilliseconds(167),
+                EasingFunction = easingFunction,
+                FillBehavior = FillBehavior.HoldEnd,
+            }
+        );
+
+        await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken);
+        CompleteSplashScreen();
+    }
+
+    private void CompleteSplashScreen()
+    {
+        SetValue(IsSplashScreenVisiblePropertyKey, false);
+        _splashScreenHost?.BeginAnimation(OpacityProperty, null);
+        _contentPresenter?.BeginAnimation(OpacityProperty, null);
     }
 
     private static void OnTitleBarHeightChanged(
@@ -647,6 +841,20 @@ public class LyuWindow : Window
     {
         ThemeChanged?.Invoke(this, e);
     }
+
+    /// <summary>
+    /// 获取或设置窗口首次显示时使用的启动屏幕。
+    /// </summary>
+    public ILyuApplicationSplashScreen? SplashScreen
+    {
+        get => (ILyuApplicationSplashScreen?)GetValue(SplashScreenProperty);
+        set => SetValue(SplashScreenProperty, value);
+    }
+
+    /// <summary>
+    /// 获取启动屏幕当前是否可见。
+    /// </summary>
+    public bool IsSplashScreenVisible => (bool)GetValue(IsSplashScreenVisibleProperty);
 
     public object? TitleBarContent
     {
