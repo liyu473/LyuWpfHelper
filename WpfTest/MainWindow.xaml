@@ -106,6 +106,58 @@
                 </lyu:SimpleStackPanel>
             </TabItem>
 
+            <TabItem Header="LyuHeader">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <lyu:SimpleStackPanel Margin="20" Orientation="Vertical" Spacing="16">
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="标题布局" />
+                        <Grid lyu:GridHelper.ColumnDefinitions="*,*" lyu:GridHelper.RowDefinitions="Auto,*">
+                            <lyu:LyuHeader
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Margin="0,0,8,12"
+                                Header="纵向标题">
+                                <Border Padding="16" Background="#12007ACC" CornerRadius="4">
+                                    <TextBlock Text="标题位于内容上方。" TextWrapping="Wrap" />
+                                </Border>
+                            </lyu:LyuHeader>
+                            <lyu:LyuHeader
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Margin="8,0,0,12"
+                                Header="横向标题"
+                                Orientation="Horizontal">
+                                <Border Padding="16" Background="#12007ACC" CornerRadius="4">
+                                    <TextBlock Text="标题位于内容左侧。" TextWrapping="Wrap" />
+                                </Border>
+                            </lyu:LyuHeader>
+                            <lyu:LyuHeader
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Margin="0,0,8,0"
+                                Header="">
+                                <Border Padding="16" Background="#12007ACC" CornerRadius="4">
+                                    <TextBlock Text="空标题会自动隐藏标题区域。" TextWrapping="Wrap" />
+                                </Border>
+                            </lyu:LyuHeader>
+                            <lyu:LyuHeader
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Margin="8,0,0,0">
+                                <lyu:LyuHeader.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="10" Height="10" Fill="#007ACC" />
+                                        <TextBlock Margin="8,0,0,0" Text="自定义标题内容" />
+                                    </StackPanel>
+                                </lyu:LyuHeader.Header>
+                                <Border Padding="16" Background="#12007ACC" CornerRadius="4">
+                                    <TextBlock Text="Header 支持任意视觉树内容。" TextWrapping="Wrap" />
+                                </Border>
+                            </lyu:LyuHeader>
+                        </Grid>
+                    </lyu:SimpleStackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <TabItem Header="SimpleWrapPanel">
                 <Grid lyu:GridHelper.RowDefinitions="*,*">
                     <lyu:SimpleWrapPanel
