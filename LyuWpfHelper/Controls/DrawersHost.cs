@@ -209,6 +209,11 @@ public class DrawersHost : ItemsControl
             return;
         }
 
+        if (e.OriginalSource is DependencyObject popupSource && IsInsideOpenDrawerPopup(popupSource))
+        {
+            return;
+        }
+
         if (TryCloseByExternalClick())
         {
             e.Handled = true;
@@ -275,13 +280,9 @@ public class DrawersHost : ItemsControl
     {
         if (e.OriginalSource is DependencyObject source)
         {
-            foreach (object item in Items)
+            if (IsInsideOpenDrawer(source))
             {
-                Drawer? drawer = item as Drawer ?? ItemContainerGenerator.ContainerFromItem(item) as Drawer;
-                if (drawer is not null && drawer.IsOpen && IsDescendantOf(source, drawer))
-                {
-                    return;
-                }
+                return;
             }
         }
 
@@ -539,6 +540,39 @@ public class DrawersHost : ItemsControl
             if (ReferenceEquals(current, ancestor))
             {
                 return true;
+            }
+
+            current = GetParent(current);
+        }
+
+        return false;
+    }
+
+    private bool IsInsideOpenDrawer(DependencyObject source)
+    {
+        foreach (Drawer drawer in GetDrawers())
+        {
+            if (drawer.IsOpen && IsDescendantOf(source, drawer))
+            {
+                return true;
+            }
+        }
+
+        return IsInsideOpenDrawerPopup(source);
+    }
+
+    private bool IsInsideOpenDrawerPopup(DependencyObject source)
+    {
+        // ComboBox 下拉项位于独立 Popup 视觉树，沿视觉树无法找到 Drawer，
+        // 通过容器反查所属 ComboBox 的 PlacementTarget 是否在当前抽屉内。
+        DependencyObject? current = source;
+        while (current is not null)
+        {
+            if (current is ComboBoxItem)
+            {
+                ItemsControl? owner = ItemsControl.ItemsControlFromItemContainer(current);
+                return owner is ComboBox
+                    && GetDrawers().Any(drawer => drawer.IsOpen && IsDescendantOf(owner, drawer));
             }
 
             current = GetParent(current);
