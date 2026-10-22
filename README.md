@@ -50,7 +50,7 @@ services.AddLyuNotificationService();
 **参数：** `title`、`message`、`type`、`position`、`durationSeconds`（0 表示不自动关闭）
 
 #### Drawer / DrawersHost
-抽屉控件，支持四方向滑出、遮罩、主题跟随/反转、外部点击关闭和动画。
+抽屉控件，支持四方向滑出、Overlay / Inline 两种交互模式、主题跟随/反转和动画。
 
 **基本用法：**
 ```xml
@@ -87,17 +87,42 @@ private void OpenDrawer_Click(object sender, RoutedEventArgs e)
 ```
 
 **常用属性（Drawer）：**
+- `Mode`：`Overlay`（默认，覆盖内容并支持外部点击关闭）/ `Inline`（占用布局空间，无遮罩，仅主动关闭）
 - `Position`：抽屉方向（`Left` / `Right` / `Top` / `Bottom`）
 - `IsOpen`：是否打开（支持双向绑定）
-- `IsModal`：是否显示遮罩并参与遮罩点击层（默认 `true`）
-- `CloseOnOverlayClick`：点击抽屉外部是否关闭（默认 `true`）
-- `CloseOnEscape`：按 `Esc` 是否关闭（默认 `true`）
+- `IsModal`：Overlay 模式下是否显示遮罩并参与遮罩点击层（默认 `true`）
+- `CloseOnOverlayClick`：Overlay 模式下点击抽屉外部是否关闭（默认 `true`）
+- `CloseOnEscape`：Overlay 模式下按 `Esc` 是否关闭（默认 `true`）
 - `AreAnimationsEnabled`：是否启用动画（默认 `true`）
 - `AnimationDuration`：动画时长（默认 `0:0:0.5`）
 - `AnimateOpacity`：是否叠加透明度动画（默认 `false`，`true` 时为位移 + 淡入淡出）
 - `ThemeMode`：`Adapt` / `Light` / `Dark` / `Inverse`
 - `OverlayBrush`、`OverlayOpacity`：遮罩颜色与透明度（按抽屉可单独配置）
 - `HeaderBackground`、`HeaderForeground`：标题区样式（`Background` 只影响主体内容区）
+
+**Inline 模式：**
+```xml
+<lyu:DrawersHost>
+    <lyu:DrawersHost.MainContent>
+        <Grid>
+            <TextBlock Text="主内容：Inline 展开时会缩小，收回后恢复。" />
+        </Grid>
+    </lyu:DrawersHost.MainContent>
+    <lyu:Drawer
+        Header="内联抽屉"
+        Width="300"
+        Position="Left"
+        Mode="Inline"
+        IsOpen="{Binding IsDrawerOpen, Mode=TwoWay}"
+        CloseCommand="{Binding OnDrawerCloseCommand}">
+        <TextBlock Text="点击内容、空白或窗口其他区域都不会关闭。" />
+    </lyu:Drawer>
+</lyu:DrawersHost>
+```
+将需要随抽屉调整大小的主内容放入 `DrawersHost.MainContent`，抽屉仍作为 `DrawersHost` 的子项。Inline 根据 `Position` 从左、右、上、下占用实际宽度或高度，占位随展开/收回动画连续变化，时长沿用 `AnimationDuration`；设置 `AreAnimationsEnabled="False"` 时立即调整；多个 Inline 按声明顺序依次占位。放在宿主外部的兄弟元素不受宿主布局控制。Overlay 保持覆盖式显示，不压缩主内容。
+`DrawersHost.InlinePadding` 为只读属性，表示当前四个方向预留的空间。
+
+Inline 不显示遮罩，不响应外部点击、`Esc` 或自动关闭计时。点击标题栏关闭按钮可收回，按钮同时调用可选的 `CloseCommand`；自定义命令中将绑定的 `IsDrawerOpen` 设为 `false`，或调用 `Drawer.Close()`，也可收回。
 
 #### Busy（BusyService + BusyMaskControl）
 Busy 遮罩用于长任务期间的加载提示和交互阻止。推荐通过 `IBusyService` 使用。

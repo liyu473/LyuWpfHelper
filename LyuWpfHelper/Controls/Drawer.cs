@@ -72,8 +72,29 @@ public class Drawer : HeaderedContentControl
         nameof(Position),
         typeof(DrawerPosition),
         typeof(Drawer),
-        new PropertyMetadata(DrawerPosition.Right, OnPositionChanged)
+        new FrameworkPropertyMetadata(DrawerPosition.Right,
+            FrameworkPropertyMetadataOptions.AffectsParentMeasure | FrameworkPropertyMetadataOptions.AffectsParentArrange,
+            OnPositionChanged)
     );
+
+    public static readonly DependencyProperty ModeProperty = DependencyProperty.Register(
+        nameof(Mode),
+        typeof(DrawerMode),
+        typeof(Drawer),
+        new FrameworkPropertyMetadata(DrawerMode.Overlay,
+            FrameworkPropertyMetadataOptions.AffectsParentMeasure | FrameworkPropertyMetadataOptions.AffectsParentArrange,
+            OnModeChanged)
+    );
+
+    private static readonly DependencyProperty InlineProgressProperty = DependencyProperty.Register(
+        nameof(InlineProgress),
+        typeof(double),
+        typeof(Drawer),
+        new FrameworkPropertyMetadata(0d,
+            FrameworkPropertyMetadataOptions.AffectsParentMeasure | FrameworkPropertyMetadataOptions.AffectsParentArrange)
+    );
+
+    internal double InlineProgress => (double)GetValue(InlineProgressProperty);
 
     public static readonly DependencyProperty IsOpenProperty = DependencyProperty.Register(
         nameof(IsOpen),
@@ -81,7 +102,9 @@ public class Drawer : HeaderedContentControl
         typeof(Drawer),
         new FrameworkPropertyMetadata(
             false,
-            FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+            FrameworkPropertyMetadataOptions.BindsTwoWayByDefault
+                | FrameworkPropertyMetadataOptions.AffectsParentMeasure
+                | FrameworkPropertyMetadataOptions.AffectsParentArrange,
             OnIsOpenChanged
         )
     );
@@ -339,6 +362,11 @@ public class Drawer : HeaderedContentControl
 
     static Drawer()
     {
+        VisibilityProperty.OverrideMetadata(
+            typeof(Drawer),
+            new FrameworkPropertyMetadata(Visibility.Visible,
+                FrameworkPropertyMetadataOptions.AffectsParentMeasure | FrameworkPropertyMetadataOptions.AffectsParentArrange)
+        );
         DefaultStyleKeyProperty.OverrideMetadata(
             typeof(Drawer),
             new FrameworkPropertyMetadata(typeof(Drawer))
@@ -374,6 +402,12 @@ public class Drawer : HeaderedContentControl
     {
         get => (DrawerPosition)GetValue(PositionProperty);
         set => SetValue(PositionProperty, value);
+    }
+
+    public DrawerMode Mode
+    {
+        get => (DrawerMode)GetValue(ModeProperty);
+        set => SetValue(ModeProperty, value);
     }
 
     public bool IsOpen
@@ -613,6 +647,7 @@ public class Drawer : HeaderedContentControl
         UpdateResolvedTheme();
 
         _ = VisualStateManager.GoToState(this, IsOpen ? StateShowDirect : StateHideDirect, false);
+        UpdateInlineProgress(IsOpen, false);
     }
 
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
@@ -704,6 +739,24 @@ public class Drawer : HeaderedContentControl
             drawer.ApplyAnimation(newPosition, drawer.AnimateOpacity);
             _ = VisualStateManager.GoToState(drawer, StateShow, true);
         }
+    }
+
+    private static void OnModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not Drawer drawer)
+        {
+            return;
+        }
+
+        // Inline 只允许主动关闭，切换模式时立即停止已有的自动关闭计时。
+        drawer.StopAutoCloseTimer();
+        if (drawer.Mode == DrawerMode.Overlay && drawer.IsOpen && drawer.IsAutoCloseEnabled)
+        {
+            drawer.StartAutoCloseTimer();
+        }
+
+        drawer.UpdateInlineProgress(drawer.IsOpen, false);
+        drawer.NotifyOwnerHostStateChanged();
     }
 
     private static void OnIsOpenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -1171,7 +1224,7 @@ public class Drawer : HeaderedContentControl
             return;
         }
 
-        if (DesignerProperties.GetIsInDesignMode(this))
+        if (Mode == DrawerMode.Inline || DesignerProperties.GetIsInDesignMode(this))
         {
             return;
         }
@@ -1192,7 +1245,7 @@ public class Drawer : HeaderedContentControl
     private void AutoCloseTimerOnTick(object? sender, EventArgs e)
     {
         StopAutoCloseTimer();
-        if (IsOpen && IsAutoCloseEnabled)
+        if (Mode == DrawerMode.Overlay && IsOpen && IsAutoCloseEnabled)
         {
             SetCurrentValue(IsOpenProperty, false);
         }
@@ -1220,6 +1273,7 @@ public class Drawer : HeaderedContentControl
 
     private void ApplyOpenState(bool isOpen)
     {
+        UpdateInlineProgress(isOpen, AreAnimationsEnabled && _rootElement is not null);
         if (_rootElement is null)
         {
             Visibility = isOpen ? Visibility.Visible : Visibility.Hidden;
@@ -1237,8 +1291,9 @@ public class Drawer : HeaderedContentControl
                     _hideStoryboard.Completed -= HideStoryboardCompleted;
                 }
 
+                bool resetShowFrame = Mode != DrawerMode.Inline || Visibility != Visibility.Visible;
                 Visibility = Visibility.Visible;
-                ApplyAnimation(Position, AnimateOpacity);
+                ApplyAnimation(Position, AnimateOpacity, resetShowFrame);
                 TryFocusDrawer();
 
                 if (_showStoryboard is not null)
@@ -1300,6 +1355,32 @@ public class Drawer : HeaderedContentControl
         }
 
         _ = VisualStateManager.GoToState(this, isOpen ? StateShowDirect : StateHideDirect, true);
+    }
+
+    private void UpdateInlineProgress(bool isOpen, bool animate)
+    {
+        double target = Mode == DrawerMode.Inline && isOpen ? 1d : 0d;
+        double current = InlineProgress;
+        TimeSpan duration = ResolveDuration();
+        if (Mode != DrawerMode.Inline || !animate || duration <= TimeSpan.Zero || current.Equals(target))
+        {
+            BeginAnimation(InlineProgressProperty, null);
+            SetValue(InlineProgressProperty, target);
+            return;
+        }
+
+        // 占位与滑动使用相同的时长和曲线；中途反向时从当前值继续。
+        SplineDoubleKeyFrame? frame = isOpen ? _showFrame : _hideFrame;
+        DoubleAnimationUsingKeyFrames animation = new()
+        {
+            Duration = new Duration(duration),
+            FillBehavior = FillBehavior.Stop,
+        };
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(current, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        animation.KeyFrames.Add(new SplineDoubleKeyFrame(target, KeyTime.FromTimeSpan(duration),
+            frame is null ? new KeySpline(0.25, 1d, 0.05, 1d) : (KeySpline)frame.KeySpline.Clone()));
+        SetValue(InlineProgressProperty, target);
+        BeginAnimation(InlineProgressProperty, animation, HandoffBehavior.SnapshotAndReplace);
     }
 
     private void UpdateAnimationDuration()

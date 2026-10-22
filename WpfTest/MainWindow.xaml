@@ -690,44 +690,51 @@
 
             <TabItem Header="抽屉">
                 <Grid>
-                    <WrapPanel
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Orientation="Horizontal">
-                        <Button
-                            Width="130"
-                            Margin="8"
-                            Click="OpenDemoDrawer_Click"
-                            Content="打开左抽屉"
-                            Tag="Left" />
-                        <Button
-                            Width="130"
-                            Margin="8"
-                            Click="OpenDemoDrawer_Click"
-                            Content="打开右抽屉"
-                            Tag="Right" />
-                        <Button
-                            Width="130"
-                            Margin="8"
-                            Click="OpenDemoDrawer_Click"
-                            Content="打开上抽屉"
-                            Tag="Top" />
-                        <Button
-                            Width="130"
-                            Margin="8"
-                            Click="OpenDemoDrawer_Click"
-                            Content="打开下抽屉"
-                            Tag="Bottom" />
-                    </WrapPanel>
-
                     <lyu:DrawersHost x:Name="DrawerDemoHost">
+                        <lyu:DrawersHost.MainContent>
+                            <Border
+                                Margin="12"
+                                BorderBrush="Gray"
+                                BorderThickness="1">
+                                <WrapPanel
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <Button
+                                        Width="130"
+                                        Margin="8"
+                                        Click="OpenDemoDrawer_Click"
+                                        Content="Inline 左抽屉"
+                                        Tag="Left" />
+                                    <Button
+                                        Width="130"
+                                        Margin="8"
+                                        Click="OpenDemoDrawer_Click"
+                                        Content="打开右抽屉"
+                                        Tag="Right" />
+                                    <Button
+                                        Width="130"
+                                        Margin="8"
+                                        Click="OpenDemoDrawer_Click"
+                                        Content="打开上抽屉"
+                                        Tag="Top" />
+                                    <Button
+                                        Width="130"
+                                        Margin="8"
+                                        Click="OpenDemoDrawer_Click"
+                                        Content="打开下抽屉"
+                                        Tag="Bottom" />
+                                </WrapPanel>
+                            </Border>
+                        </lyu:DrawersHost.MainContent>
                         <lyu:Drawer
                             x:Name="LeftDemoDrawer"
                             Width="340"
-                            Header="左侧抽屉"
+                            Header="左侧抽屉（Inline）"
+                            Mode="Inline"
                             Position="Left"
                             ThemeMode="Inverse">
-                            <TextBlock Text="这里是左侧抽屉内容。" TextWrapping="Wrap" />
+                            <TextBlock Text="Inline 模式：展开时占用左侧空间，主内容随之缩小；收回后释放空间。点击空白或内容不会关闭。" TextWrapping="Wrap" />
                         </lyu:Drawer>
 
                         <lyu:Drawer

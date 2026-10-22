@@ -89,4 +89,5 @@ $RECYCLE.BIN/
 
 
 test/
-tests/
+tests/*
+!tests/DrawerModeChecks/

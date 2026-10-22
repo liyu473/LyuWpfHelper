@@ -1,8 +1,10 @@
 using LyuWpfHelper.Helpers;
+using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -15,6 +17,22 @@ namespace LyuWpfHelper.Controls;
 [TemplatePart(Name = PartOverlayLayer, Type = typeof(FrameworkElement))]
 public class DrawersHost : ItemsControl
 {
+    public static readonly DependencyProperty MainContentProperty = DependencyProperty.Register(
+        nameof(MainContent),
+        typeof(object),
+        typeof(DrawersHost),
+        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsMeasure, OnMainContentChanged)
+    );
+
+    private static readonly DependencyPropertyKey InlinePaddingPropertyKey = DependencyProperty.RegisterReadOnly(
+        nameof(InlinePadding),
+        typeof(Thickness),
+        typeof(DrawersHost),
+        new FrameworkPropertyMetadata(new Thickness())
+    );
+
+    public static readonly DependencyProperty InlinePaddingProperty = InlinePaddingPropertyKey.DependencyProperty;
+
     private static readonly TimeSpan DefaultOverlayAnimationDuration = TimeSpan.FromMilliseconds(500);
     private const string PartOverlayLayer = "PART_OverlayLayer";
     private const string LightOverlayBrushResourceKey = "LyuDrawer.Light.OverlayBrush";
@@ -46,6 +64,45 @@ public class DrawersHost : ItemsControl
             typeof(DrawersHost),
             new FrameworkPropertyMetadata(typeof(DrawersHost))
         );
+        ItemsPanelProperty.OverrideMetadata(
+            typeof(DrawersHost),
+            new FrameworkPropertyMetadata(new ItemsPanelTemplate(new FrameworkElementFactory(typeof(DrawersPanel))))
+        );
+    }
+
+    public object? MainContent
+    {
+        get => GetValue(MainContentProperty);
+        set => SetValue(MainContentProperty, value);
+    }
+
+    public Thickness InlinePadding => (Thickness)GetValue(InlinePaddingProperty);
+
+    protected override IEnumerator LogicalChildren
+    {
+        get
+        {
+            List<object> children = new();
+            IEnumerator existing = base.LogicalChildren;
+            while (existing.MoveNext())
+            {
+                children.Add(existing.Current);
+            }
+
+            if (MainContent is not null)
+            {
+                children.Add(MainContent);
+            }
+
+            return children.GetEnumerator();
+        }
+    }
+
+    private static void OnMainContentChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        DrawersHost host = (DrawersHost)d;
+        host.RemoveLogicalChild(e.OldValue);
+        host.AddLogicalChild(e.NewValue);
     }
 
     public DrawersHost()
@@ -83,9 +140,13 @@ public class DrawersHost : ItemsControl
         if (_overlayLayer is null && !_isApplyingFallbackTemplate)
         {
             _isApplyingFallbackTemplate = true;
-            Template = FallbackTemplate;
-            ApplyTemplate();
-            _isApplyingFallbackTemplate = false;
+            // 避免在当前模板构建过程中再次应用模板，导致视觉树被清空。
+            _ = Dispatcher.BeginInvoke(new Action(() =>
+            {
+                SetCurrentValue(TemplateProperty, FallbackTemplate);
+                ApplyTemplate();
+                _isApplyingFallbackTemplate = false;
+            }));
             return;
         }
 
@@ -263,7 +324,7 @@ public class DrawersHost : ItemsControl
         }
 
         Drawer? drawerToClose = GetOpenDrawers()
-            .Where(d => d.CloseOnEscape)
+            .Where(d => d.Mode == DrawerMode.Overlay && d.CloseOnEscape)
             .OrderByDescending(Panel.GetZIndex)
             .FirstOrDefault();
 
@@ -496,7 +557,7 @@ public class DrawersHost : ItemsControl
 
     private static bool IsOverlayParticipant(Drawer drawer)
     {
-        return drawer.IsModal;
+        return drawer.Mode == DrawerMode.Overlay && drawer.IsModal;
     }
 
     private IEnumerable<Drawer> GetDrawers()
@@ -519,7 +580,7 @@ public class DrawersHost : ItemsControl
     private bool TryCloseByExternalClick()
     {
         Drawer? topMostClosableDrawer = GetOpenDrawers()
-            .Where(d => d.CloseOnOverlayClick)
+            .Where(d => d.Mode == DrawerMode.Overlay && d.CloseOnOverlayClick)
             .OrderByDescending(Panel.GetZIndex)
             .FirstOrDefault();
 
@@ -604,6 +665,17 @@ public class DrawersHost : ItemsControl
 
         FrameworkElementFactory itemsPresenter = new(typeof(ItemsPresenter));
 
+        FrameworkElementFactory contentPresenter = new(typeof(ContentPresenter));
+        contentPresenter.SetBinding(ContentPresenter.ContentProperty, new Binding(nameof(MainContent))
+        {
+            RelativeSource = RelativeSource.TemplatedParent,
+        });
+        contentPresenter.SetBinding(MarginProperty, new Binding(nameof(InlinePadding))
+        {
+            RelativeSource = RelativeSource.TemplatedParent,
+        });
+
+        root.AppendChild(contentPresenter);
         root.AppendChild(overlayLayer);
         root.AppendChild(itemsPresenter);
 
@@ -636,5 +708,10 @@ public class DrawersHost : ItemsControl
     {
         ReorderZIndices(changedDrawer);
         UpdateOverlayState();
+    }
+
+    internal void SetInlinePadding(Thickness padding)
+    {
+        SetValue(InlinePaddingPropertyKey, padding);
     }
 }
