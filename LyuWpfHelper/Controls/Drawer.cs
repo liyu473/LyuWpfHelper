@@ -1088,6 +1088,14 @@ public class Drawer : HeaderedContentControl
         AttachOwnerWindow();
         UpdateResolvedTheme();
         ApplyAnimation(Position, AnimateOpacity);
+        if (IsOpen)
+        {
+            // 页面从 Frame 脱离后重新挂载时，模板可能重新应用；恢复打开状态，避免 Inline 抽屉保留隐藏的模板根节点。
+            Visibility = Visibility.Visible;
+            SetValue(IsShownPropertyKey, true);
+            UpdateInlineProgress(isOpen: true, animate: false);
+            _ = VisualStateManager.GoToState(this, StateShowDirect, false);
+        }
         NotifyOwnerHostStateChanged();
 
         if (IsOpen && IsAutoCloseEnabled)
