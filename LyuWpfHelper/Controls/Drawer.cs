@@ -643,9 +643,13 @@ public class Drawer : HeaderedContentControl
 
         UpdateAnimationDuration();
         UpdateOpacityChange();
-        ApplyAnimation(Position, AnimateOpacity);
+        ApplyAnimation(Position, AnimateOpacity, resetShowFrame: !IsOpen);
         UpdateResolvedTheme();
 
+        if (IsOpen)
+        {
+            _ = VisualStateManager.GoToState(this, StateHideDirect, false);
+        }
         _ = VisualStateManager.GoToState(this, IsOpen ? StateShowDirect : StateHideDirect, false);
         UpdateInlineProgress(IsOpen, false);
     }
@@ -1087,13 +1091,14 @@ public class Drawer : HeaderedContentControl
     {
         AttachOwnerWindow();
         UpdateResolvedTheme();
-        ApplyAnimation(Position, AnimateOpacity);
+        ApplyAnimation(Position, AnimateOpacity, resetShowFrame: !IsOpen);
         if (IsOpen)
         {
-            // 页面从 Frame 脱离后重新挂载时，模板可能重新应用；恢复打开状态，避免 Inline 抽屉保留隐藏的模板根节点。
+            // 页面重复卸载/加载时可能仍处于 ShowDirect，先切到隐藏态才能重新应用显示状态。
             Visibility = Visibility.Visible;
             SetValue(IsShownPropertyKey, true);
             UpdateInlineProgress(isOpen: true, animate: false);
+            _ = VisualStateManager.GoToState(this, StateHideDirect, false);
             _ = VisualStateManager.GoToState(this, StateShowDirect, false);
         }
         NotifyOwnerHostStateChanged();
